@@ -6,10 +6,10 @@ import 'community/community.dart';
 import 'profile/profile.dart';
 
 class BottomNavScreen extends StatefulWidget {
-  const BottomNavScreen({Key? key}) : super(key: key);
+  const BottomNavScreen({super.key});
 
   @override
-  _BottomNavScreenState createState() => _BottomNavScreenState();
+  State<BottomNavScreen> createState() => _BottomNavScreenState();
 }
 
 class _BottomNavScreenState extends State<BottomNavScreen> {
@@ -40,12 +40,15 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
         iconTheme: const IconThemeData(color: Colors.green),
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications_none),
+            icon: const Icon(Icons.notifications),
             onPressed: () {},
           ),
         ],
       ),
-      body: _pages[_selectedIndex],
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: _pages,
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
