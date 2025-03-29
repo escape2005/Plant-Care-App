@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'login.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
-  const ForgotPasswordScreen({Key? key}) : super(key: key);
+  const ForgotPasswordScreen({super.key});
 
   @override
   _ForgotPasswordScreenState createState() => _ForgotPasswordScreenState();
@@ -14,16 +14,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.green),
-          onPressed: () => Navigator.pop(context),
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
         child: Column(
           children: [
             _buildProgressIndicator(1),
@@ -84,16 +76,8 @@ class OtpVerificationScreen extends StatelessWidget {
     final TextEditingController otpController = TextEditingController();
     
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.green),
-          onPressed: () => Navigator.pop(context),
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
         child: Column(
           children: [
             _buildProgressIndicator(2),
@@ -151,16 +135,8 @@ class ResetPasswordScreen extends StatelessWidget {
     final TextEditingController confirmPasswordController = TextEditingController();
 
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.green),
-          onPressed: () => Navigator.pop(context),
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
         child: Column(
           children: [
             _buildProgressIndicator(3),

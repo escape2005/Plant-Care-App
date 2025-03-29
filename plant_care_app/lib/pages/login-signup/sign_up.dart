@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'login.dart';
+
 
 class SignUpScreen extends StatefulWidget {
-  const SignUpScreen({Key? key}) : super(key: key);
+  const SignUpScreen({super.key});
 
   @override
   _SignUpScreenState createState() => _SignUpScreenState();
@@ -88,16 +90,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.green),
-          onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
+      // appBar: AppBar(
+      //   leading: IconButton(
+      //     icon: const Icon(Icons.arrow_back, color: Colors.green),
+      //     onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
+      //   ),
+      //   backgroundColor: Colors.transparent,
+      //   elevation: 0,
+      // ),
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
         child: Column(
           children: [
             const Spacer(),
@@ -184,10 +186,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 12, color: Colors.black54),
             ),
+            const SizedBox(height: 20),
+            _buildBackToLogin(context),
             const Spacer(),
           ],
         ),
       ),
     );
   }
+}
+Widget _buildBackToLogin(BuildContext context) {
+  return TextButton(
+    onPressed: () {
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LoginScreen()));
+    },
+    child: const Text("Back to Login Page", style: TextStyle(color: Colors.green, fontSize: 16)),
+  );
 }

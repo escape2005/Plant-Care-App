@@ -5,7 +5,6 @@ import 'pages/login-signup/landing_page.dart';
 import 'pages/login-signup/login.dart';
 import 'pages/login-signup/sign_up.dart';
 import 'pages/login-signup/forgot_password.dart';
-import 'pages/home/home.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Ensure Flutter bindings are initialized
@@ -20,7 +19,7 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +27,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Plantify',
       theme: ThemeData(primarySwatch: Colors.green),
-      initialRoute: '/welcome',
+      initialRoute: '/home',
       routes: {
         '/welcome': (context) => const WelcomeScreen(),
         '/login': (context) => const LoginScreen(),
