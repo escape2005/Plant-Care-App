@@ -1,14 +1,94 @@
 import 'package:flutter/material.dart';
 import 'package:plant_care_app/pages/bottom_nav.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 final bottomNav = const BottomNavScreen();
+
+class Plant {
+  final String speciesName;
+  final String scientificName;
+  final String? description;
+  final String? careDifficulty;
+  final int? waterFrequencyDays;
+  final String? sunlightRequirement;
+  final String? imageUrl;
+  final int? currentAvailability;
+  final String userId;
+
+  Plant({
+    required this.speciesName,
+    required this.scientificName,
+    this.description,
+    this.careDifficulty,
+    this.waterFrequencyDays,
+    this.sunlightRequirement,
+    this.imageUrl,
+    this.currentAvailability,
+    required this.userId,
+  });
+
+  factory Plant.fromMap(Map<String, dynamic> map) {
+    return Plant(
+      speciesName: map['species_name'] ?? '',
+      scientificName: map['scientific_name'] ?? '',
+      description: map['description'],
+      careDifficulty: map['care_difficulty'],
+      waterFrequencyDays: int.tryParse(map['water_frequency_days'] ?? '0'),
+      sunlightRequirement: map['sunlight_requirement'],
+      imageUrl: map['image_url'],
+      currentAvailability: map['current_availability'],
+      userId: map['user_id'] ?? '',
+    );
+  }
+}
+
+Future<List<Plant>> fetchPlants() async {
+  final supabase = Supabase.instance.client;
+  final user = supabase.auth.currentUser;
+
+  if (user == null) {
+    throw Exception('User not authenticated');
+  }
+
+  final response = await supabase
+      .from('adoption_record')
+      .select('''
+        plant_id,
+        plant_catalog (
+          species_name,
+          scientific_name,
+          description,
+          care_difficulty,
+          water_frequency_days,
+          sunlight_requirement,
+          image_url,
+          current_availability
+        )
+      ''')
+      .eq('user_id', user.id);
+
+  return (response as List).map((data) {
+    final plantData = data['plant_catalog'] as Map<String, dynamic>;
+    return Plant(
+      speciesName: plantData['species_name'] ?? '',
+      scientificName: plantData['scientific_name'] ?? '',
+      description: plantData['description'],
+      careDifficulty: plantData['care_difficulty'],
+      waterFrequencyDays: int.tryParse(plantData['water_frequency_days']?.toString() ?? '0'),
+      sunlightRequirement: plantData['sunlight_requirement'],
+      imageUrl: plantData['image_url'],
+      currentAvailability: plantData['current_availability'],
+      userId: user.id,
+    );
+  }).toList();
+}
 
 class MyPlantsScreen extends StatelessWidget {
   const MyPlantsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-      return SingleChildScrollView(
+    return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -19,20 +99,56 @@ class MyPlantsScreen extends StatelessWidget {
             child: ListView(
               scrollDirection: Axis.horizontal,
               children: [
-                _buildPlantCategoryItem('Monstera', 'assets/images/plant.jpg', Colors.green),
-                _buildPlantCategoryItem('Snake Plant', 'assets/images/plant.jpg', null),
-                _buildPlantCategoryItem('Pothos', 'assets/images/plant.jpg', Colors.green),
-                _buildPlantCategoryItem('Fiddle Fig', 'assets/images/plant.jpg', null),
-                _buildPlantCategoryItem('Peace Lily', 'assets/images/plant.jpg', Colors.green),
-                _buildPlantCategoryItem('Peace Lily', 'assets/images/plant.jpg', Colors.green),
-                _buildPlantCategoryItem('Peace Lily', 'assets/images/plant.jpg', Colors.green),
-                _buildPlantCategoryItem('Peace Lily', 'assets/images/plant.jpg', Colors.green),
-                _buildPlantCategoryItem('Peace Lily', 'assets/images/plant.jpg', Colors.green),
+                _buildPlantCategoryItem(
+                  'Monstera',
+                  'assets/images/plant.jpg',
+                  Colors.green,
+                ),
+                _buildPlantCategoryItem(
+                  'Snake Plant',
+                  'assets/images/plant.jpg',
+                  null,
+                ),
+                _buildPlantCategoryItem(
+                  'Pothos',
+                  'assets/images/plant.jpg',
+                  Colors.green,
+                ),
+                _buildPlantCategoryItem(
+                  'Fiddle Fig',
+                  'assets/images/plant.jpg',
+                  null,
+                ),
+                _buildPlantCategoryItem(
+                  'Peace Lily',
+                  'assets/images/plant.jpg',
+                  Colors.green,
+                ),
+                _buildPlantCategoryItem(
+                  'Peace Lily',
+                  'assets/images/plant.jpg',
+                  Colors.green,
+                ),
+                _buildPlantCategoryItem(
+                  'Peace Lily',
+                  'assets/images/plant.jpg',
+                  Colors.green,
+                ),
+                _buildPlantCategoryItem(
+                  'Peace Lily',
+                  'assets/images/plant.jpg',
+                  Colors.green,
+                ),
+                _buildPlantCategoryItem(
+                  'Peace Lily',
+                  'assets/images/plant.jpg',
+                  Colors.green,
+                ),
                 // BACKEND: More plant categories can be added dynamically here
               ],
             ),
           ),
-          
+
           // Second Section - Stats Boxes
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -68,10 +184,7 @@ class MyPlantsScreen extends StatelessWidget {
                         ),
                         const Text(
                           'Total Plants',
-                          style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: 12,
-                          ),
+                          style: TextStyle(color: Colors.grey, fontSize: 12),
                         ),
                       ],
                     ),
@@ -97,7 +210,11 @@ class MyPlantsScreen extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.check_circle_outline, color: Colors.green, size: 28),
+                        Icon(
+                          Icons.check_circle_outline,
+                          color: Colors.green,
+                          size: 28,
+                        ),
                         const SizedBox(height: 8),
                         const Text(
                           '8',
@@ -108,10 +225,7 @@ class MyPlantsScreen extends StatelessWidget {
                         ),
                         const Text(
                           'Healthy',
-                          style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: 12,
-                          ),
+                          style: TextStyle(color: Colors.grey, fontSize: 12),
                         ),
                       ],
                     ),
@@ -148,10 +262,7 @@ class MyPlantsScreen extends StatelessWidget {
                         ),
                         const Text(
                           'Needs Care',
-                          style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: 12,
-                          ),
+                          style: TextStyle(color: Colors.grey, fontSize: 12),
                         ),
                       ],
                     ),
@@ -160,7 +271,7 @@ class MyPlantsScreen extends StatelessWidget {
               ],
             ),
           ),
-          
+
           // Third Section - Today's Plant Care
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -169,10 +280,7 @@ class MyPlantsScreen extends StatelessWidget {
               children: [
                 const Text(
                   "Today's Plant Care",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 12),
                 SizedBox(
@@ -207,7 +315,7 @@ class MyPlantsScreen extends StatelessWidget {
               ],
             ),
           ),
-          
+
           // Fourth Section - All Plants
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -216,52 +324,85 @@ class MyPlantsScreen extends StatelessWidget {
               children: [
                 const Text(
                   "All Plants",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 16),
-                _buildPlantCard(
-                  name: 'Monstera Deliciosa',
-                  species: 'Monstera',
-                  daysSinceWatered: 2,
-                  waterLevel: 0.7,
-                  imagePath: 'assets/images/plant.jpg',
-                  statusColor: Colors.green,
-                  onTap: () {
-                    // BACKEND: Navigate to plant detail page
+                // Replace the existing FutureBuilder section with this updated code
+                FutureBuilder<List<Plant>>(
+                  future: fetchPlants(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    } else if (snapshot.hasError) {
+                      return Center(
+                        child: Text(
+                          'Error: ${snapshot.error}',
+                          style: TextStyle(
+                            color: Colors.red[600],
+                            fontSize: 16,
+                          ),
+                        ),
+                      );
+                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.local_florist_outlined,
+                              size: 64,
+                              color: Colors.grey[400],
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'No plants allocated yet',
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.grey[600],
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Kindly contact the NGO for assistance',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[500],
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    } else {
+                      return Column(
+                        children:
+                            snapshot.data!.map((plant) {
+                              return Column(
+                                children: [
+                                  _buildPlantCard(
+                                    name: plant.speciesName,
+                                    species: plant.scientificName,
+                                    daysSinceWatered:
+                                        plant.waterFrequencyDays ?? 0,
+                                    imagePath:
+                                        plant.imageUrl ??
+                                        'assets/images/plant.jpg',
+                                    onTap: () {
+                                      // Navigate to detail screen if needed
+                                    },
+                                  ),
+                                  const SizedBox(height: 8),
+                                ],
+                              );
+                            }).toList(),
+                      );
+                    }
                   },
                 ),
-                const SizedBox(height: 16),
-                _buildPlantCard(
-                  name: 'Snake Plant',
-                  species: 'Sansevieria',
-                  daysSinceWatered: 5,
-                  waterLevel: 0.6,
-                  imagePath: 'assets/images/plant.jpg',
-                  statusColor: Colors.amber,
-                  onTap: () {
-                    // BACKEND: Navigate to plant detail page
-                  },
-                ),
-                const SizedBox(height: 16),
-                _buildPlantCard(
-                  name: 'Golden Pothos',
-                  species: 'Epipremnum aureum',
-                  daysSinceWatered: 1,
-                  waterLevel: 0.9,
-                  imagePath: 'assets/images/plant.jpg',
-                  statusColor: Colors.green,
-                  onTap: () {
-                    // BACKEND: Navigate to plant detail page
-                  },
-                ),
-                // BACKEND: More plant cards can be added dynamically here
               ],
             ),
           ),
-          
+
           // Fifth Section - Add Plant Photo
           Padding(
             padding: const EdgeInsets.all(16),
@@ -289,18 +430,12 @@ class MyPlantsScreen extends StatelessWidget {
                   const SizedBox(height: 16),
                   const Text(
                     'Add your plant photo',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
                   const Text(
                     'Share your plant with our NGO experts',
-                    style: TextStyle(
-                      color: Colors.grey,
-                      fontSize: 14,
-                    ),
+                    style: TextStyle(color: Colors.grey, fontSize: 14),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
@@ -329,7 +464,11 @@ class MyPlantsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPlantCategoryItem(String name, String imagePath, Color? statusColor) {
+  Widget _buildPlantCategoryItem(
+    String name,
+    String imagePath,
+    Color? statusColor,
+  ) {
     return Container(
       width: 80,
       margin: const EdgeInsets.symmetric(horizontal: 6),
@@ -368,10 +507,7 @@ class MyPlantsScreen extends StatelessWidget {
           Text(
             name,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
@@ -400,19 +536,10 @@ class MyPlantsScreen extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 4),
-          Text(
-            time,
-            style: TextStyle(
-              color: Colors.grey[600],
-              fontSize: 14,
-            ),
-          ),
+          Text(time, style: TextStyle(color: Colors.grey[600], fontSize: 14)),
         ],
       ),
     );
@@ -421,10 +548,10 @@ class MyPlantsScreen extends StatelessWidget {
   Widget _buildPlantCard({
     required String name,
     required String species,
-    required int daysSinceWatered,
-    required double waterLevel,
+    int daysSinceWatered = 0,
+    double waterLevel = 0,
     required String imagePath,
-    required Color statusColor,
+    Color statusColor = Colors.green,
     required VoidCallback onTap,
   }) {
     return GestureDetector(
@@ -433,32 +560,45 @@ class MyPlantsScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(8),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withValues(),
+              color: Colors.grey.withOpacity(0.35),
               spreadRadius: 1,
-              blurRadius: 3,
-              offset: const Offset(0, 1),
+              blurRadius: 5,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Stack(
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: Image.asset(
-                    imagePath,
+                  child: SizedBox(
                     width: 80,
                     height: 80,
-                    fit: BoxFit.cover,
+                    child: Image.network(
+                      imagePath,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: Colors.grey[300],
+                          child: const Icon(
+                            Icons.broken_image,
+                            size: 40,
+                            color: Colors.grey,
+                          ),
+                        );
+                      },
+                    ),
                   ),
                 ),
                 Positioned(
-                  top: 0,
-                  right: 0,
+                  top: 4,
+                  right: 4,
                   child: Container(
                     width: 12,
                     height: 12,
@@ -472,6 +612,7 @@ class MyPlantsScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(width: 16),
+            // 🌱 Plant info section
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -484,21 +625,16 @@ class MyPlantsScreen extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    species,
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 14,
-                    ),
+                    "Scientific Name: ${species}",
+                    style: TextStyle(color: Colors.grey[600], fontSize: 12),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Last watered: $daysSinceWatered ${daysSinceWatered == 1 ? 'day' : 'days'} ago',
-                    style: TextStyle(
-                      color: Colors.grey[700],
-                      fontSize: 13,
-                    ),
+                    style: TextStyle(color: Colors.grey[700], fontSize: 13),
                   ),
                   const SizedBox(height: 8),
+                  // 💧 Water level progress bar
                   Stack(
                     children: [
                       Container(
@@ -509,12 +645,15 @@ class MyPlantsScreen extends StatelessWidget {
                         ),
                       ),
                       FractionallySizedBox(
-                        widthFactor: waterLevel,
+                        widthFactor: waterLevel.clamp(0.6, 1.0),
                         child: Container(
                           height: 8,
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
-                              colors: [Colors.green.shade700, Colors.green.shade400],
+                              colors: [
+                                Colors.green.shade700,
+                                Colors.green.shade400,
+                              ],
                             ),
                             borderRadius: BorderRadius.circular(4),
                           ),

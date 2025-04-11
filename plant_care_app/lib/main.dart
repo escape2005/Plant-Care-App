@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Plantify',
       theme: ThemeData(primarySwatch: Colors.green),
-      initialRoute: '/home',
+      initialRoute: '/welcome',
       routes: {
         '/welcome': (context) => const WelcomeScreen(),
         '/login': (context) => const LoginScreen(),
