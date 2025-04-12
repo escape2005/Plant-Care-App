@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:plant_care_app/pages/profile/main_screen.dart';
 import 'my-plants/my_plant.dart';
 import 'guide/guides.dart';
 import 'community/community.dart';
@@ -18,7 +19,7 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
     const MyPlantsScreen(),
     const GuidesScreen(),
     const CommunityScreen(),
-    const ProfileScreen(),
+    const MainScreen(),
   ];
 
   void _onItemTapped(int index) {
