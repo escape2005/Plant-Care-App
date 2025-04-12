@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:plant_care_app/pages/bottom_nav.dart';
+import 'package:plant_care_app/pages/indi-plants/indi_plants.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 final bottomNav = const BottomNavScreen();
@@ -118,26 +119,6 @@ class MyPlantsScreen extends StatelessWidget {
                   'Fiddle Fig',
                   'assets/images/plant.jpg',
                   null,
-                ),
-                _buildPlantCategoryItem(
-                  'Peace Lily',
-                  'assets/images/plant.jpg',
-                  Colors.green,
-                ),
-                _buildPlantCategoryItem(
-                  'Peace Lily',
-                  'assets/images/plant.jpg',
-                  Colors.green,
-                ),
-                _buildPlantCategoryItem(
-                  'Peace Lily',
-                  'assets/images/plant.jpg',
-                  Colors.green,
-                ),
-                _buildPlantCategoryItem(
-                  'Peace Lily',
-                  'assets/images/plant.jpg',
-                  Colors.green,
                 ),
                 _buildPlantCategoryItem(
                   'Peace Lily',
@@ -318,7 +299,7 @@ class MyPlantsScreen extends StatelessWidget {
 
           // Fourth Section - All Plants
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -388,7 +369,12 @@ class MyPlantsScreen extends StatelessWidget {
                                         plant.imageUrl ??
                                         'assets/images/plant.jpg',
                                     onTap: () {
-                                      // Navigate to detail screen if needed
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => IndiPlants(speciesName: plant.speciesName, scientificName: plant.scientificName, imageUrl: plant.imageUrl,),
+                                        ),
+                                      );
                                     },
                                   ),
                                   const SizedBox(height: 8),

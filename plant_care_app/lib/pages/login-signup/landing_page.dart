@@ -1,8 +1,20 @@
 import 'package:flutter/material.dart';
 import 'login.dart';
 
-class WelcomeScreen extends StatelessWidget {
+// Assuming this is accessible globally (as in main.dart)
+
+class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
+
+  @override
+  State<WelcomeScreen> createState() => _WelcomeScreenState();
+}
+
+class _WelcomeScreenState extends State<WelcomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
