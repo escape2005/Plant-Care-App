@@ -84,7 +84,7 @@ class InviteLoginPage extends StatelessWidget {
                 // Buttons Section
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.pushReplacementNamed(context, '/login');
+                    Navigator.pushReplacementNamed(context, '/home');
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,

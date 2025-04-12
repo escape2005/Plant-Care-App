@@ -37,7 +37,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (res.user != null) {
-        Navigator.pushReplacementNamed(context, "/home");
+        Navigator.pushReplacementNamed(context, "/inviteLogin");
       }
     } on AuthException catch (e) {
       _showErrorSnackbar(e.message);

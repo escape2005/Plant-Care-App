@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:plant_care_app/pages/bottom_nav.dart';
+import 'package:plant_care_app/pages/invite-login/invite_login.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'pages/login-signup/landing_page.dart';
 import 'pages/login-signup/login.dart';
@@ -39,6 +40,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/welcome': (context) => const WelcomeScreen(),
         '/login': (context) => const LoginScreen(),
+        '/inviteLogin': (context) => const InviteLoginPage(),
         '/signup': (context) => SignUpScreen(),
         '/forgot_password': (context) => ForgotPasswordScreen(),
         '/home': (context) => BottomNavScreen(),
