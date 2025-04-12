@@ -4,13 +4,18 @@ class ThemeProvider with ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.light;
 
   ThemeMode get themeMode => _themeMode;
-  
+
   void setTheme(ThemeMode mode) {
     _themeMode = mode;
     notifyListeners();
   }
 
   bool get isDarkMode => _themeMode == ThemeMode.dark;
+
+  void toggleTheme() {
+    _themeMode = _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
+    notifyListeners();
+  }
 
   // Light theme configuration
   static final ThemeData lightTheme = ThemeData(
@@ -22,7 +27,7 @@ class ThemeProvider with ChangeNotifier {
       color: Colors.white,
       elevation: 0,
       iconTheme: IconThemeData(color: Colors.green),
-  ),
+    ),
   );
 
   // Dark theme configuration
@@ -34,6 +39,7 @@ class ThemeProvider with ChangeNotifier {
     appBarTheme: AppBarTheme(
       color: Colors.grey[900]!,
       elevation: 0,
-      iconTheme: const IconThemeData(color: Colors.white)),
+      iconTheme: const IconThemeData(color: Colors.white),
+    ),
   );
 }
