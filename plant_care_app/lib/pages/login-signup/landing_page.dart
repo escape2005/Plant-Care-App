@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:plant_care_app/pages/invite-login/invite_login.dart';
 import 'login.dart';
 
 // Assuming this is accessible globally (as in main.dart)
@@ -65,7 +66,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                  MaterialPageRoute(builder: (context) => const InviteLoginPage()),
                 );
               },
               child: const Text(

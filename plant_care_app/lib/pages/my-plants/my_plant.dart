@@ -75,13 +75,53 @@ Future<List<Plant>> fetchPlants() async {
       scientificName: plantData['scientific_name'] ?? '',
       description: plantData['description'],
       careDifficulty: plantData['care_difficulty'],
-      waterFrequencyDays: int.tryParse(plantData['water_frequency_days']?.toString() ?? '0'),
+      waterFrequencyDays: int.tryParse(
+        plantData['water_frequency_days']?.toString() ?? '0',
+      ),
       sunlightRequirement: plantData['sunlight_requirement'],
       imageUrl: plantData['image_url'],
       currentAvailability: plantData['current_availability'],
       userId: user.id,
     );
   }).toList();
+}
+
+Future<List<Map<String, dynamic>>> fetchPlantCategories() async {
+  final supabase = Supabase.instance.client;
+  final user = supabase.auth.currentUser;
+
+  if (user == null) {
+    throw Exception('User not authenticated');
+  }
+
+  // Fetch all plants for the user
+  final response = await supabase
+      .from('adoption_record')
+      .select('''
+        plant_id,
+        plant_catalog (
+          species_name,
+          image_url
+        )
+      ''')
+      .eq('user_id', user.id);
+
+  // Extract unique species from the response
+  final Map<String, Map<String, dynamic>> uniqueSpecies = {};
+
+  for (var data in response as List) {
+    final plantData = data['plant_catalog'] as Map<String, dynamic>;
+    final speciesName = plantData['species_name'] as String? ?? '';
+
+    if (speciesName.isNotEmpty && !uniqueSpecies.containsKey(speciesName)) {
+      uniqueSpecies[speciesName] = {
+        'species_name': speciesName,
+        'image_url': plantData['image_url'],
+      };
+    }
+  }
+
+  return uniqueSpecies.values.toList();
 }
 
 class MyPlantsScreen extends StatelessWidget {
@@ -97,36 +137,49 @@ class MyPlantsScreen extends StatelessWidget {
           Container(
             height: 120,
             padding: const EdgeInsets.symmetric(vertical: 10),
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              children: [
-                _buildPlantCategoryItem(
-                  'Monstera',
-                  'assets/images/plant.jpg',
-                  Colors.green,
-                ),
-                _buildPlantCategoryItem(
-                  'Snake Plant',
-                  'assets/images/plant.jpg',
-                  null,
-                ),
-                _buildPlantCategoryItem(
-                  'Pothos',
-                  'assets/images/plant.jpg',
-                  Colors.green,
-                ),
-                _buildPlantCategoryItem(
-                  'Fiddle Fig',
-                  'assets/images/plant.jpg',
-                  null,
-                ),
-                _buildPlantCategoryItem(
-                  'Peace Lily',
-                  'assets/images/plant.jpg',
-                  Colors.green,
-                ),
-                // BACKEND: More plant categories can be added dynamically here
-              ],
+            child: FutureBuilder<List<Map<String, dynamic>>>(
+              future: fetchPlantCategories(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(
+                    child: Text(
+                      'Error loading categories: ${snapshot.error}',
+                      style: TextStyle(color: Colors.red[600], fontSize: 14),
+                    ),
+                  );
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return Center(
+                    child: Text(
+                      'No plant categories found',
+                      style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                    ),
+                  );
+                } else {
+                  // Display the categories
+                  return ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: snapshot.data!.length,
+                    itemBuilder: (context, index) {
+                      final category = snapshot.data![index];
+                      final speciesName = category['species_name'] as String;
+                      final imageUrl = category['image_url'] as String?;
+
+                      // Determine plant health status (you may want to modify this logic)
+                      // For now, let's alternate between green and null for demo purposes
+                      final Color? statusColor =
+                          index % 2 == 0 ? Colors.green : null;
+
+                      return _buildPlantCategoryItem(
+                        speciesName,
+                        imageUrl ?? 'assets/images/plant.jpg',
+                        statusColor,
+                      );
+                    },
+                  );
+                }
+              },
             ),
           ),
 
@@ -299,7 +352,7 @@ class MyPlantsScreen extends StatelessWidget {
 
           // Fourth Section - All Plants
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -455,6 +508,8 @@ class MyPlantsScreen extends StatelessWidget {
     String imagePath,
     Color? statusColor,
   ) {
+    final bool isNetworkImage = imagePath.startsWith('http');
+
     return Container(
       width: 80,
       margin: const EdgeInsets.symmetric(horizontal: 6),
@@ -467,11 +522,34 @@ class MyPlantsScreen extends StatelessWidget {
                 height: 70,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  image: DecorationImage(
-                    image: AssetImage(imagePath),
-                    fit: BoxFit.cover,
-                  ),
+                  image:
+                      isNetworkImage
+                          ? null // Don't use DecorationImage for network images
+                          : DecorationImage(
+                            image: AssetImage(imagePath),
+                            fit: BoxFit.cover,
+                          ),
                 ),
+                // Use Image.network for network images
+                child:
+                    isNetworkImage
+                        ? ClipOval(
+                          child: Image.network(
+                            imagePath,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                color: Colors.grey[300],
+                                child: const Icon(
+                                  Icons.eco,
+                                  size: 30,
+                                  color: Colors.grey,
+                                ),
+                              );
+                            },
+                          ),
+                        )
+                        : null,
               ),
               if (statusColor != null)
                 Positioned(
