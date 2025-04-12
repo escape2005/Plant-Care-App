@@ -1,48 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'login.dart';
 
-// Assuming this is accessible globally (as in main.dart)
-final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-
-void showSimpleNotification() async {
-  var androidPlatformChannelSpecifics = AndroidNotificationDetails(
-    'your_channel_id',
-    'your_channel_name',
-    channelDescription: 'your_channel_description',
-    importance: Importance.max,
-    priority: Priority.high,
-    ticker: 'ticker',
-  );
-  var iOSPlatformChannelSpecifics = IOSNotificationDetails();
-  var platformChannelSpecifics = NotificationDetails(
-    android: androidPlatformChannelSpecifics,
-    iOS: iOSPlatformChannelSpecifics,
-  );
-  await flutterLocalNotificationsPlugin.show(
-    0,
-    'Hello!',
-    'This is a simple notification.',
-    platformChannelSpecifics,
-  );
-}
-
-IOSNotificationDetails() {
-}
-
-class WelcomeScreen extends StatefulWidget {
+class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
-
-  @override
-  State<WelcomeScreen> createState() => _WelcomeScreenState();
-}
-
-class _WelcomeScreenState extends State<WelcomeScreen> {
-  @override
-  void initState() {
-    super.initState();
-    showSimpleNotification(); // Show the notification on screen load
-  }
 
   @override
   Widget build(BuildContext context) {
