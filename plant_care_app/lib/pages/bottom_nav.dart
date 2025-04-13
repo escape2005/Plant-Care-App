@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:plant_care_app/pages/guides/guides_page.dart';
 import 'package:plant_care_app/pages/profile/main_screen.dart';
 import 'my-plants/my_plant.dart';
-import 'guide/guides.dart';
 import 'community/community.dart';
 import 'profile/profile.dart';
 
@@ -17,7 +17,7 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
 
   final List<Widget> _pages = [
     const MyPlantsScreen(),
-    const GuidesScreen(),
+    const GuidesPage(),
     const CommunityScreen(),
     const MainScreen(),
   ];
