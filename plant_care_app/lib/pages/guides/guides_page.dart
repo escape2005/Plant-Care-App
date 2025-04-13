@@ -80,7 +80,7 @@ class GuidesPage extends StatelessWidget {
               ),
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
                   child: GridView.builder(
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
@@ -105,7 +105,7 @@ class GuidesPage extends StatelessWidget {
                             color: category.color,
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(10),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -113,13 +113,13 @@ class GuidesPage extends StatelessWidget {
                               Icon(
                                 category.icon,
                                 color: category.textColor,
-                                size: 32,
+                                size: 20,
                               ),
                               const SizedBox(height: 12),
                               Text(
                                 category.title,
                                 style: TextStyle(
-                                  fontSize: 18,
+                                  fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                   color: category.textColor,
                                 ),
