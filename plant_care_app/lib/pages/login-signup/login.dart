@@ -3,16 +3,16 @@ import 'package:flutter/material.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
-  
+
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final supabase = Supabase.instance.client;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -22,29 +22,65 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _login() async {
-    String email = _emailController.text.trim();
-    String password = _passwordController.text.trim();
+  String email = _emailController.text.trim();
+  String password = _passwordController.text.trim();
+  if (email.isEmpty || password.isEmpty) {
+    _showErrorSnackbar("Please fill in all fields.");
+    return;
+  }
 
-    if (email.isEmpty || password.isEmpty) {
-      _showErrorSnackbar("Please fill in all fields.");
-      return;
-    }
+  setState(() {
+    _isLoading = true;
+  });
 
-    try {
-      final AuthResponse res = await supabase.auth.signInWithPassword(
-        email: email,
-        password: password,
-      );
+  try {
+    final AuthResponse res = await supabase.auth.signInWithPassword(
+      email: email,
+      password: password,
+    );
 
-      if (res.user != null) {
-        Navigator.pushReplacementNamed(context, "/inviteLogin");
+    if (res.user != null) {
+      print("User successfully logged in: ${res.user!.id}");
+      
+      // Check if any adoption records for this user have is_verified = false
+      final response = await supabase
+          .from('adoption_record')
+          .select('is_verified')
+          .eq('user_id', res.user!.id);
+      
+      print("Plant verification response: $response");
+      
+      // Check if any record has is_verified = false
+      bool hasUnverifiedRecord = false;
+      if (response != null && response is List && response.isNotEmpty) {
+        for (var record in response) {
+          if (record['is_verified'] == false) {
+            hasUnverifiedRecord = true;
+            break;
+          }
+        }
       }
-    } on AuthException catch (e) {
-      _showErrorSnackbar(e.message);
-    } catch (e) {
-      _showErrorSnackbar("An unexpected error occurred.");
+      
+      // Redirect based on verification status
+      if (hasUnverifiedRecord) {
+        Navigator.pushReplacementNamed(context, "/verify");
+      } else {
+        Navigator.pushReplacementNamed(context, "/home");
+      }
+    }
+  } on AuthException catch (e) {
+    _showErrorSnackbar(e.message);
+  } catch (e) {
+    _showErrorSnackbar("An unexpected error occurred.");
+    print("Login error: $e"); // For debugging
+  } finally {
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
+}
 
   void _showErrorSnackbar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -120,11 +156,20 @@ class _LoginScreenState extends State<LoginScreen> {
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
-              onPressed:_login,
-              child: const Text(
-                "Log In",
-                style: TextStyle(color: Colors.white, fontSize: 16),
-              ),
+              onPressed: _isLoading ? null : _login,
+              child: _isLoading
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : const Text(
+                      "Log In",
+                      style: TextStyle(color: Colors.white, fontSize: 16),
+                    ),
             ),
             const SizedBox(height: 20),
             TextButton(
