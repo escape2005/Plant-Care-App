@@ -21,9 +21,10 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  Future<void> _login() async {
+Future<void> _login() async {
   String email = _emailController.text.trim();
   String password = _passwordController.text.trim();
+  
   if (email.isEmpty || password.isEmpty) {
     _showErrorSnackbar("Please fill in all fields.");
     return;
@@ -34,45 +35,47 @@ class _LoginScreenState extends State<LoginScreen> {
   });
 
   try {
+    // Sign in
     final AuthResponse res = await supabase.auth.signInWithPassword(
       email: email,
       password: password,
     );
-
-    if (res.user != null) {
-      print("User successfully logged in: ${res.user!.id}");
-      
-      // Check if any adoption records for this user have is_verified = false
-      final response = await supabase
-          .from('adoption_record')
-          .select('is_verified')
-          .eq('user_id', res.user!.id);
-      
-      print("Plant verification response: $response");
-      
-      // Check if any record has is_verified = false
-      bool hasUnverifiedRecord = false;
-      if (response != null && response is List && response.isNotEmpty) {
-        for (var record in response) {
-          if (record['is_verified'] == false) {
-            hasUnverifiedRecord = true;
-            break;
-          }
+    
+    if (res.user == null) {
+      _showErrorSnackbar("Login failed. Please try again.");
+      return;
+    }
+    
+    // Check for unverified plants
+    final response = await supabase
+        .from('adoption_record')
+        .select('is_verified')
+        .eq('user_id', res.user!.id);
+    
+    // Handle navigation based on verification status
+    bool hasUnverifiedRecord = false;
+    if (response != null && response is List && response.isNotEmpty) {
+      for (var record in response) {
+        if (record['is_verified'] == false) {
+          hasUnverifiedRecord = true;
+          break;
         }
       }
-      
-      // Redirect based on verification status
+    }
+    
+    if (mounted) {
       if (hasUnverifiedRecord) {
-        Navigator.pushReplacementNamed(context, "/verify");
+        Navigator.of(context).pushNamedAndRemoveUntil('/verify', (route) => false);
       } else {
-        Navigator.pushReplacementNamed(context, "/home");
+        Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
       }
     }
+    
   } on AuthException catch (e) {
     _showErrorSnackbar(e.message);
   } catch (e) {
     _showErrorSnackbar("An unexpected error occurred.");
-    print("Login error: $e"); // For debugging
+    print("Login error: $e");
   } finally {
     if (mounted) {
       setState(() {
@@ -81,7 +84,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 }
-
   void _showErrorSnackbar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
