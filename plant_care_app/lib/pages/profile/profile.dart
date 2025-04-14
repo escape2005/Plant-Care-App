@@ -1,6 +1,4 @@
 
-
-
 import 'package:flutter/material.dart';
 import 'package:plant_care_app/pages/profile/main_screen.dart';
 
@@ -21,5 +19,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
-

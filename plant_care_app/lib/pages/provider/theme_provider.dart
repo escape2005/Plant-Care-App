@@ -3,22 +3,19 @@ import 'package:flutter/material.dart';
 class ThemeProvider with ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.light;
 
-  ThemeMode get themeMode => _themeMode;
-
-  void setTheme(ThemeMode mode) {
-    _themeMode = mode;
-    notifyListeners();
-  }
-
+  // Getters
   bool get isDarkMode => _themeMode == ThemeMode.dark;
+  ThemeMode get themeMode => _themeMode;
+  ThemeData get lightTheme => _lightTheme;
+  ThemeData get darkTheme => _darkTheme;
 
-  void toggleTheme() {
-    _themeMode = _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
+  void toggleTheme(bool isDark) {
+    _themeMode = isDark ? ThemeMode.dark : ThemeMode.light;
     notifyListeners();
   }
 
-  // Light theme configuration
-  static final ThemeData lightTheme = ThemeData(
+  // Light Theme
+  static final ThemeData _lightTheme = ThemeData(
     brightness: Brightness.light,
     primaryColor: Colors.green,
     scaffoldBackgroundColor: Colors.white,
@@ -28,10 +25,14 @@ class ThemeProvider with ChangeNotifier {
       elevation: 0,
       iconTheme: IconThemeData(color: Colors.green),
     ),
+    textTheme: const TextTheme(
+      bodyLarge: TextStyle(color: Colors.black87),
+      bodyMedium: TextStyle(color: Colors.black54),
+    ),
   );
 
-  // Dark theme configuration
-  static final ThemeData darkTheme = ThemeData(
+  // Dark Theme
+  static final ThemeData _darkTheme = ThemeData(
     brightness: Brightness.dark,
     primaryColor: Colors.lightGreen,
     scaffoldBackgroundColor: Colors.grey[900]!,
@@ -40,6 +41,10 @@ class ThemeProvider with ChangeNotifier {
       color: Colors.grey[900]!,
       elevation: 0,
       iconTheme: const IconThemeData(color: Colors.white),
+    ),
+    textTheme: const TextTheme(
+      bodyLarge: TextStyle(color: Colors.white),
+      bodyMedium: TextStyle(color: Colors.white70),
     ),
   );
 }
