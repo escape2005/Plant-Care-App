@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:plant_care_app/pages/invite-login/invite_login.dart';
-import 'login.dart';
+import 'package:plant_care_app/pages/login-signup/login.dart';
 
 // Assuming this is accessible globally (as in main.dart)
 
