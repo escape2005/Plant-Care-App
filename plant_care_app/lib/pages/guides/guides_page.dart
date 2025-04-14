@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import '../../models/guide.dart';
 import '../../services/guide_service.dart';
+import '../../services/guide_category_service.dart';
 import 'guides_list_page.dart';
 
 class GuidesPage extends StatelessWidget {
@@ -9,61 +10,24 @@ class GuidesPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Define guide categories with their icons
-    final List<GuideCategory> categories = [
-      GuideCategory(
-        title: 'Watering',
-        icon: Icons.water_drop_outlined,
-        count: 0, // Will be updated from DB
-        color: Colors.green.shade100,
-        textColor: Colors.green.shade800,
-      ),
-      GuideCategory(
-        title: 'Pruning',
-        icon: Icons.content_cut_outlined,
-        count: 0, // Will be updated from DB
-        color: Colors.green.shade100,
-        textColor: Colors.green.shade800,
-      ),
-      GuideCategory(
-        title: 'Pest Control',
-        icon: Icons.warning_amber_outlined,
-        count: 0, // Will be updated from DB
-        color: Colors.green.shade100,
-        textColor: Colors.green.shade800,
-      ),
-      GuideCategory(
-        title: 'Light',
-        icon: Icons.wb_sunny_outlined,
-        count: 0, // Will be updated from DB
-        color: Colors.green.shade100,
-        textColor: Colors.green.shade800,
-      ),
-    ];
-
     return Scaffold(
-      body: FutureBuilder<Map<String, int>>(
-        future: GuideService().getGuideCounts(),
+      body: FutureBuilder<Map<String, dynamic>>(
+        future: _loadCategoriesAndCounts(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-
-          if (snapshot.hasData) {
-            final counts = snapshot.data!;
-            // Update the counts for each category
-            for (var i = 0; i < categories.length; i++) {
-              final category = categories[i];
-              categories[i] = GuideCategory(
-                title: category.title,
-                icon: category.icon,
-                count: counts[category.title.toLowerCase()] ?? 0,
-                color: category.color,
-                textColor: category.textColor,
-              );
-            }
+          
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
           }
 
+          if (!snapshot.hasData || snapshot.data!['categories'].isEmpty) {
+            return const Center(child: Text('No guide categories found'));
+          }
+
+          final categories = snapshot.data!['categories'] as List<GuideCategory>;
+          
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -145,5 +109,34 @@ class GuidesPage extends StatelessWidget {
         },
       ),
     );
+  }
+
+  // Method to load both categories and their guide counts
+  Future<Map<String, dynamic>> _loadCategoriesAndCounts() async {
+    // First, fetch categories from the database
+    final categoryService = GuideCategoryService();
+    final List<GuideCategory> categories = await categoryService.getCategories();
+
+    // Then get guide counts for each category
+    final guideService = GuideService();
+    final Map<String, int> counts = await guideService.getGuideCounts();
+
+    // Update each category with its count
+    for (var i = 0; i < categories.length; i++) {
+      final category = categories[i];
+      categories[i] = GuideCategory(
+        id: category.id,
+        title: category.title,
+        icon: category.icon,
+        count: counts[category.id] ?? 0,
+        color: Colors.green.shade100,
+        textColor: Colors.green.shade800,
+      );
+    }
+
+    return {
+      'categories': categories,
+      'counts': counts,
+    };
   }
 }
