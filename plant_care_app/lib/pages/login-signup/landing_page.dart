@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+<<<<<<< HEAD
 import 'package:plant_care_app/pages/login-signup/login.dart';
+=======
+import 'login.dart';
+>>>>>>> 4a146b4e8f661da341f97650634a4de836c50b06
 
 // Assuming this is accessible globally (as in main.dart)
 

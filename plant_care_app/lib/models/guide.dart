@@ -4,31 +4,31 @@ import 'package:flutter/material.dart';
 class Guide {
   final int id;
   final String title;
-  final String category;
+  final String categoryId; // UUID as string
+  final String summary;
   final String content;
-  final String? summary;
   final String? imageUrl;
   final DateTime createdAt;
   final DateTime updatedAt;
-
+  
   Guide({
     required this.id,
     required this.title,
-    required this.category,
+    required this.categoryId,
+    required this.summary,
     required this.content,
-    this.summary,
     this.imageUrl,
     required this.createdAt,
     required this.updatedAt,
   });
-
+  
   factory Guide.fromJson(Map<String, dynamic> json) {
     return Guide(
       id: json['id'],
       title: json['title'],
-      category: json['category'],
-      content: json['content'],
+      categoryId: json['category'],
       summary: json['summary'],
+      content: json['content'],
       imageUrl: json['image_url'],
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
@@ -37,6 +37,7 @@ class Guide {
 }
 
 class GuideCategory {
+  final String id; // UUID as string
   final String title;
   final IconData icon;
   final int count;
@@ -44,6 +45,7 @@ class GuideCategory {
   final Color textColor;
 
   GuideCategory({
+    required this.id,
     required this.title,
     required this.icon,
     required this.count,

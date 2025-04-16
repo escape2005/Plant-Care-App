@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:plant_care_app/pages/bottom_nav.dart';
-import 'package:plant_care_app/pages/invite-login/invite_login.dart';
+import 'package:plant_care_app/pages/login-signup/verify_plants.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:plant_care_app/pages/login-signup/landing_page.dart';
 import 'package:plant_care_app/pages/login-signup/login.dart';
@@ -8,6 +8,7 @@ import 'package:plant_care_app/pages/login-signup/sign_up.dart';
 import 'package:plant_care_app/pages/login-signup/forgot_password.dart';
 import 'package:plant_care_app/pages/provider/theme_provider.dart';
 import 'package:provider/provider.dart';
+import 'wrapper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

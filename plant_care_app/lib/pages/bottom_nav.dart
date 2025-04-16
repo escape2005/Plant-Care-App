@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 import 'package:plant_care_app/pages/guides/guides_page.dart';
 import 'package:plant_care_app/pages/profile/main_screen.dart';
@@ -6,14 +8,21 @@ import 'community/community.dart';
 import 'profile/profile.dart';
 
 class BottomNavScreen extends StatefulWidget {
-  const BottomNavScreen({super.key});
+  final int? index;
+  const BottomNavScreen({super.key, this.index});
 
   @override
   State<BottomNavScreen> createState() => _BottomNavScreenState();
 }
 
 class _BottomNavScreenState extends State<BottomNavScreen> {
-  int _selectedIndex = 0;
+  late int _selectedIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedIndex = widget.index ?? 0;
+  }
 
   final List<Widget> _pages = [
     const MyPlantsScreen(),
