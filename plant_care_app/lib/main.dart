@@ -48,7 +48,7 @@ class MyApp extends StatelessWidget {
             '/signup': (context) => SignUpScreen(),
             '/forgot_password': (context) => ForgotPasswordScreen(),
             '/home': (context) => BottomNavScreen(),
-            '/inviteLogin': (context) => const InviteLoginPage(),
+            
           },
         );
       },
