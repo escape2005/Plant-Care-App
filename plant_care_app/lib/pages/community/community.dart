@@ -12,11 +12,12 @@ class CommunityScreen extends StatefulWidget {
 class _CommunityScreenState extends State<CommunityScreen> {
   final List<Post> _posts = [
     Post(
+      userId: 'user123',
       userName: 'Omkar',
       location: 'Dombivli',
-      imageUrl: 'https://images.unsplash.com/photo-1682687220801-eef408f95d71',
-      caption: 'My monstera is thriving! Any tips for propagation?',
-      timeAgo: '2h ago',
+      imagePath: 'path/to/monstera_image.jpg', // Changed from imageUrl to imagePath
+      description: 'My monstera is thriving! Any tips for propagation?', // Changed from caption to description
+      createdAt: DateTime.now().subtract(const Duration(hours: 2)), // Required field
       likes: 24,
       comments: 8,
       userProfileImage: 'assets/images/plant.jpg',
@@ -38,30 +39,51 @@ class _CommunityScreenState extends State<CommunityScreen> {
               children: [
                 ListTile(
                   leading: CircleAvatar(
-                    backgroundImage: AssetImage(post.userProfileImage),
+                    backgroundImage: post.userProfileImage != null
+                        ? AssetImage(post.userProfileImage!)
+                        : const AssetImage('assets/images/default_profile.jpg'),
                   ),
                   title: Text(
-                    post.userName,
+                    post.userName ?? 'Anonymous',
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   subtitle: Text(post.timeAgo),
-                  trailing: Text(
-                    post.location,
+                  trailing: post.location != null ? Text(
+                    post.location!,
                     style: TextStyle(color: Colors.grey[600]),
-                  ),
+                  ) : null,
                 ),
                 Image.network(
                   post.imageUrl,
                   height: 300,
                   width: double.infinity,
                   fit: BoxFit.cover,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Container(
+                      height: 300,
+                      width: double.infinity,
+                      color: Colors.grey[300],
+                      child: const Center(child: CircularProgressIndicator()),
+                    );
+                  },
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      height: 300,
+                      width: double.infinity,
+                      color: Colors.grey[300],
+                      child: const Center(
+                        child: Text('Failed to load image'),
+                      ),
+                    );
+                  },
                 ),
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(post.caption, style: const TextStyle(fontSize: 16)),
+                      Text(post.description, style: const TextStyle(fontSize: 16)), // Changed from caption to description
                       const SizedBox(height: 8),
                       Row(
                         children: [

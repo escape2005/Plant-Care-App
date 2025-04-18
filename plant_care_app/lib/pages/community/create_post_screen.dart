@@ -254,7 +254,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                       MaterialPageRoute(
                         builder:
                             (context) => const BottomNavScreen(
-                              index: communityPageIndex,
+                              // index: communityPageIndex,
                             ),
                       ),
                     );
