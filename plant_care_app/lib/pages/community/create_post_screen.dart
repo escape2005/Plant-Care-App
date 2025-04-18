@@ -225,36 +225,37 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               padding: const EdgeInsets.all(16),
               child: ElevatedButton(
                 onPressed: () async {
+                  imagePath =
+                      "/$userId/${DateTime.now().millisecondsSinceEpoch}";
 
-                  imagePath = "/$userId/${DateTime.now().millisecondsSinceEpoch}";
-
-                  await supabase.storage
-                      .from('community-images')
-                      .uploadBinary(
-                        imagePath,
-                        imageBytes,
-                        fileOptions: FileOptions(
-                          upsert: true,
-                          contentType: 'image/jpeg',
-                        ),
-                      );
-
-                  await supabase.from('community_intearctions').insert({
-                    'user_id': userId,
-                    'image_path': imagePath,
-                    'description': _captionController.text,
-                  });
                   // Handle post submission
                   if (_imageFile != null &&
                       _captionController.text.isNotEmpty) {
-                    // Here you would typically upload the image and caption to your backend
+                    await supabase.storage
+                        .from('community-images')
+                        .uploadBinary(
+                          imagePath,
+                          imageBytes,
+                          fileOptions: FileOptions(
+                            upsert: true,
+                            contentType: 'image/jpeg',
+                          ),
+                        );
+
+                    await supabase.from('community_interactions').insert({
+                      'user_id': userId,
+                      'image_path': imagePath,
+                      'description': _captionController.text,
+                    });
+
                     const communityPageIndex = 2;
+
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder:
                             (context) => const BottomNavScreen(
-                              // index: communityPageIndex,
+                              index: communityPageIndex,
                             ),
                       ),
                     );
