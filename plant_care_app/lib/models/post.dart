@@ -10,6 +10,7 @@ class Post {
   final String? interactionType;
   final int likes;
   final int comments;
+  bool isLiked; // Added isLiked property
 
   Post({
     required this.id,
@@ -23,6 +24,7 @@ class Post {
     this.interactionType,
     this.likes = 0,
     this.comments = 0,
+    this.isLiked = false, // Default to not liked
   });
 
   factory Post.fromMap(Map<String, dynamic> map) {
@@ -36,9 +38,9 @@ class Post {
       description: map['description'] ?? '',
       location: map['location'],
       interactionType: map['interaction_type'],
-      // Sample placeholder values for likes and comments
-      likes: 0,
-      comments: 0,
+      likes: map['num_of_likes'] ?? 0,
+      comments: map['num_of_comments'] ?? 0,
+      isLiked: map['is_liked'] ?? false,
     );
   }
 

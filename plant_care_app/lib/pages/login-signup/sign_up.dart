@@ -54,12 +54,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
         // emailRedirectTo: 'io.supabase.flutterquickstart://login-callback/',
       );
 
-      await supabase.from('users').insert({
-        'name': name,
-        'email': email,
-        'password': password,
-      });
-
       if (response.user != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
