@@ -1,0 +1,23 @@
+{
+  "@@locale": "mr",
+  "language": "भाषा",
+  "darkMode": "डार्क मोड",
+  "appVersion": "ॲप आवृत्ती",
+  "english": "इंग्रजी",
+  "hindi": "हिंदी",
+  "marathi": "मराठी",
+  "chooseLanguage": "भाषा निवडा",
+  "profileName": "अल्का विश्वकर्मा",
+  "profileEmail": "alkavishwakarma@example.com",
+  "editProfile": "प्रोफाइल संपादित करा",
+  "changePassword": "पासवर्ड बदला",
+  "deleteAccount": "खाते हटवा",
+  "plantCareReminders": "वनस्पती काळजी स्मरणपत्रे",
+  "wateringSchedule": "पाणी देण्याचे वेळापत्रक",
+  "fertilizingAlerts": "खत चेतावणी",
+  "communityUpdates": "समुदाय अद्यतने",
+  "careReminderDesc": "पाणी देणे आणि काळजी वेळापत्रकाबद्दल सूचना मिळवा",
+  "wateringDesc": "वनस्पतींना पाणी देण्यासाठी दैनंदिन स्मरणपत्रे",
+  "fertilizingDesc": "खत वेळापत्रकासाठी सूचना",
+  "communityDesc": "वनस्पती समुदायातून अद्यतने"
+}

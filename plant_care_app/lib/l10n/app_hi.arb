@@ -1,0 +1,23 @@
+{
+  "@@locale": "hi",
+  "language": "भाषा",
+  "darkMode": "डार्क मोड",
+  "appVersion": "ऐप संस्करण",
+  "english": "अंग्रेज़ी",
+  "hindi": "हिंदी", 
+  "marathi": "मराठी",
+  "chooseLanguage": "भाषा चुनें",
+  "profileName": "अल्का विश्वकर्मा",
+  "profileEmail": "alkavishwakarma@example.com",
+  "editProfile": "प्रोफ़ाइल संपादित करें",
+  "changePassword": "पासवर्ड बदलें",
+  "deleteAccount": "खाता हटाएं",
+  "plantCareReminders": "पौधे की देखभाल अनुस्मारक",
+  "wateringSchedule": "पानी देने का समय",
+  "fertilizingAlerts": "उर्वरक चेतावनी",
+  "communityUpdates": "समुदाय अपडेट",
+  "careReminderDesc": "पानी देने और देखभाल कार्यक्रम के बारे में सूचनाएं प्राप्त करें",
+  "wateringDesc": "पौधों को पानी देने के लिए दैनिक अनुस्मारक",
+  "fertilizingDesc": "उर्वरक कार्यक्रम के लिए सूचनाएं",
+  "communityDesc": "पौधा समुदाय से अपडेट"
+}

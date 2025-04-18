@@ -5,8 +5,11 @@ import 'package:plant_care_app/pages/profile/edit_profile.dart';
 import 'package:plant_care_app/pages/profile/faqs.dart';
 import 'package:plant_care_app/pages/profile/feedback.dart';
 import 'package:plant_care_app/pages/profile/section_heading.dart';
+import 'package:plant_care_app/pages/provider/locale_provider.dart';
 import 'package:plant_care_app/pages/provider/theme_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
 
 
 class MainScreen extends StatefulWidget {
@@ -82,7 +85,7 @@ Widget _buildProfileCard() {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Alka Vishwakarma',
+                    AppLocalizations.of(context)!.profileName,
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -91,7 +94,7 @@ Widget _buildProfileCard() {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'alkavishwakarma@example.com',
+                    AppLocalizations.of(context)!.profileEmail,
                     style: TextStyle(
                       color: Theme.of(context).textTheme.bodyMedium?.color,
                       fontSize: 14,
@@ -111,16 +114,16 @@ Widget _buildProfileCard() {
     final options = [
       {
         'icon': Icons.person,
-        'title': 'Edit Profile',
+        'title':AppLocalizations.of(context)!.editProfile,
         'page': const EditProfilePage()
       },
       {
         'icon': Icons.lock,
-        'title': 'Change Password',
+        'title': AppLocalizations.of(context)!.changePassword,
         'page': const ChangePasswordPage()
       },
       {  'icon': Icons.delete, 
-         'title': 'Delete Account', 
+         'title': AppLocalizations.of(context)!.deleteAccount,  
          
          'page': null},
     ];
@@ -168,28 +171,28 @@ Widget _buildProfileCard() {
   }
 
   Widget _buildNotificationsSection() {
-    final notificationOptions = [
-      {
-        'title': 'Plant care Reminders',
-        'subtitle': 'Get notified about watering and care schedules',
-        'value': _plantCareEnabled,
-      },
-      {
-        'title': 'Watering schedule',
-        'subtitle': 'Daily reminders for plant watering',
-        'value': _wateringEnabled,
-      },
-      {
-        'title': 'Fertilizing Alerts',
-        'subtitle': 'Notifications for fertilizing schedule',
-        'value': _fertilizingEnabled,
-      },
-      {
-        'title': 'Community Updates',
-        'subtitle': 'Update from plant community',
-        'value': _communityUpdatesEnabled,
-      },
-    ];
+ final notificationOptions = [
+    {
+      'title': AppLocalizations.of(context)!.plantCareReminders,
+      'subtitle': AppLocalizations.of(context)!.careReminderDesc,
+      'value': _plantCareEnabled,
+    },
+    {
+      'title': AppLocalizations.of(context)!.wateringSchedule,
+      'subtitle': AppLocalizations.of(context)!.wateringDesc,
+      'value': _wateringEnabled,
+    },
+    {
+      'title': AppLocalizations.of(context)!.fertilizingAlerts,
+      'subtitle': AppLocalizations.of(context)!.fertilizingDesc,
+      'value': _fertilizingEnabled,
+    },
+    {
+      'title': AppLocalizations.of(context)!.communityUpdates,
+      'subtitle': AppLocalizations.of(context)!.communityDesc,
+      'value': _communityUpdatesEnabled,
+    },
+  ];
 
     return Column(
       children: notificationOptions.map((option) {
@@ -465,24 +468,28 @@ Widget _buildHelpnSupporttSection(BuildContext context) {
 }
 
 Widget _buildadditionalsetting(BuildContext context) {
+  // Changed from ThemeProvider to include LocaleProvider
   final themeProvider = Provider.of<ThemeProvider>(context);
-  final currentLanguage = 'English'; // Replace with your language state variable
+  final localeProvider = Provider.of<LocaleProvider>(context); // Added locale provider
+  
+  // Changed from hardcoded 'English' to dynamic localization
   final appVersion = '2.1.0';
 
+  // Updated options to use localized strings
   final options = [
     {
       'icon': Icons.translate,
-      'title': 'Language',
+      'title': AppLocalizations.of(context)!.language, // Localized title
       'type': 'language',
     },
     {
       'icon': Icons.dark_mode,
-      'title': 'Dark Mode', 
+      'title': AppLocalizations.of(context)!.darkMode, // Localized title
       'type': 'theme',
     },
     {
       'icon': Icons.info_outline,
-      'title': 'App Version',
+      'title': AppLocalizations.of(context)!.appVersion, // Localized title
       'type': 'version',
     },
   ];
@@ -493,8 +500,9 @@ Widget _buildadditionalsetting(BuildContext context) {
       
       switch (option['type']) {
         case 'language':
+          // Updated to show localized language name
           trailingWidget = Text(
-            currentLanguage,
+            _getCurrentLanguageName(context, localeProvider.locale),
             style: TextStyle(
               color: Theme.of(context).textTheme.bodyMedium?.color,
               fontSize: 14,
@@ -502,18 +510,17 @@ Widget _buildadditionalsetting(BuildContext context) {
           );
           break;
         
-      case 'theme':
-  trailingWidget = Consumer<ThemeProvider>(
-    builder: (context, themeProvider, _) {
-      return Switch(
-        value: themeProvider.isDarkMode,
-        onChanged: (value) => themeProvider.toggleTheme(value),
-        activeColor: Colors.green,
-        activeTrackColor: Colors.green.shade100,
-      );
-    },
-  );
-
+        case 'theme':
+          trailingWidget = Consumer<ThemeProvider>(
+            builder: (context, themeProvider, _) {
+              return Switch(
+                value: themeProvider.isDarkMode,
+                onChanged: (value) => themeProvider.toggleTheme(value),
+                activeColor: Colors.green,
+                activeTrackColor: Colors.green.shade100,
+              );
+            },
+          );
           break;
         
         case 'version':
@@ -548,10 +555,59 @@ Widget _buildadditionalsetting(BuildContext context) {
         trailing: trailingWidget,
         onTap: () {
           if (option['type'] == 'language') {
-            // Add language selection logic
+            // Added language selection dialog
+            _showLanguageDialog(context, localeProvider);
           }
         },
       );
     }).toList(),
+  );
+}
+
+// New helper function to get localized language name
+String _getCurrentLanguageName(BuildContext context, Locale? locale) {
+  switch (locale?.languageCode) {
+    case 'hi':
+      return AppLocalizations.of(context)!.hindi;
+    case 'mr':
+      return AppLocalizations.of(context)!.marathi;
+    default:
+      return AppLocalizations.of(context)!.english;
+  }
+}
+
+// New function to show language selection dialog
+void _showLanguageDialog(BuildContext context, LocaleProvider provider) {
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text(AppLocalizations.of(context)!.chooseLanguage),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            title: Text(AppLocalizations.of(context)!.english),
+            onTap: () {
+              provider.setLocale(const Locale('en'));
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            title: Text(AppLocalizations.of(context)!.hindi),
+            onTap: () {
+              provider.setLocale(const Locale('hi'));
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            title: Text(AppLocalizations.of(context)!.marathi),
+            onTap: () {
+              provider.setLocale(const Locale('mr'));
+              Navigator.pop(context);
+            },
+          ),
+        ],
+      ),
+    ),
   );
 }
