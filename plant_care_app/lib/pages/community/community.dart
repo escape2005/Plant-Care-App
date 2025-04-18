@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:plant_care_app/pages/community/create_post_screen.dart';
 import 'package:plant_care_app/pages/community/comments_bottom_sheet.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:http/http.dart' as http;
+import 'dart:io';
 import '../../models/post.dart';
 
 class CommunityScreen extends StatefulWidget {
@@ -264,136 +268,482 @@ class _CommunityScreenState extends State<CommunityScreen> {
     });
   }
 
+  // Helper method to download image from URL and save locally
+  Future<File?> _downloadAndSaveImage(String imageUrl) async {
+    try {
+      // Get temporary directory to store the image
+      final directory = await getTemporaryDirectory();
+
+      // Generate a unique file name using timestamp
+      final fileName =
+          'plant_image_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final filePath = '${directory.path}/$fileName';
+
+      // Download the file
+      final response = await http.get(Uri.parse(imageUrl));
+
+      if (response.statusCode == 200) {
+        // Save the image to the file system
+        final file = File(filePath);
+        await file.writeAsBytes(response.bodyBytes);
+        return file;
+      } else {
+        print('Failed to download image: HTTP ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      print('Error downloading image: $e');
+      return null;
+    }
+  }
+
+  // Share post with image and text
+  Future<void> _sharePost(Post post) async {
+    try {
+      // Show a loading indicator
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Preparing to share post...'),
+          duration: Duration(seconds: 1),
+        ),
+      );
+
+      // Create share text
+      final String shareText =
+          '${post.description}\n\nShared from Plantify App by ${post.userName}';
+
+      // Download and save the image
+      final File? imageFile = await _downloadAndSaveImage(post.imageUrl);
+
+      if (imageFile != null) {
+        // Get the position for share sheet (important for iOS)
+        final box = context.findRenderObject() as RenderBox?;
+
+        // Share the image and text
+        final result = await Share.shareXFiles(
+          [XFile(imageFile.path)],
+          text: shareText,
+          subject: 'Check out this plant post!',
+          sharePositionOrigin:
+              box != null ? box.localToGlobal(Offset.zero) & box.size : null,
+        );
+
+        // Optional: Handle share result
+        if (result.status == ShareResultStatus.success) {
+          print('Post shared successfully');
+        } else if (result.status == ShareResultStatus.dismissed) {
+          print('Share was dismissed');
+        }
+      } else {
+        // Fallback to sharing just the text if image download fails
+        await Share.share(
+          '${shareText}\n\n(Image could not be shared)',
+          subject: 'Check out this plant post!',
+        );
+      }
+    } catch (e) {
+      print('Error sharing post: $e');
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to share: $e')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body:
           _isLoading
-              ? const Center(child: CircularProgressIndicator())
+              ? const Center(
+                child: CircularProgressIndicator(color: Colors.green),
+              )
               : _errorMessage != null
               ? Center(child: Text(_errorMessage!))
               : _posts.isEmpty
-              ? const Center(child: Text('No posts yet. Be the first to post!'))
-              : ListView.builder(
-                itemCount: _posts.length,
-                itemBuilder: (context, index) {
-                  final post = _posts[index];
-                  return Card(
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 18,
+              ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.photo_library_outlined,
+                      size: 80,
+                      color: Colors.grey[400],
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ListTile(
-                          leading: CircleAvatar(
-                            backgroundImage:
-                                post.userProfileImage != null
-                                    ? NetworkImage(post.userProfileImage!)
-                                    : const AssetImage(
-                                          'assets/images/account_circle.png',
-                                        )
-                                        as ImageProvider,
-                          ),
-                          title: Text(
-                            post.userName,
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Text(post.timeAgo),
-                          trailing:
-                              post.location != null
-                                  ? Text(
-                                    post.location!,
-                                    style: TextStyle(color: Colors.grey[600]),
-                                  )
-                                  : null,
-                        ),
-                        Image.network(
-                          post.imageUrl,
-                          height: 300,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                          loadingBuilder: (context, child, loadingProgress) {
-                            if (loadingProgress == null) return child;
-                            return SizedBox(
-                              height: 300,
-                              child: Center(
-                                child: CircularProgressIndicator(
-                                  value:
-                                      loadingProgress.expectedTotalBytes != null
-                                          ? loadingProgress
-                                                  .cumulativeBytesLoaded /
-                                              loadingProgress
-                                                  .expectedTotalBytes!
-                                          : null,
+                    const SizedBox(height: 16),
+                    const Text(
+                      'No posts yet',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Be the first to share with the community!',
+                      style: TextStyle(color: Colors.grey[600]),
+                    ),
+                  ],
+                ),
+              )
+              : RefreshIndicator(
+                onRefresh: _loadPosts,
+                color: Colors.green,
+                child: ListView.builder(
+                  itemCount: _posts.length,
+                  itemBuilder: (context, index) {
+                    final post = _posts[index];
+                    return Card(
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 2,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // User info bar with modern design
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: const BorderRadius.only(
+                                  topLeft: Radius.circular(16),
+                                  topRight: Radius.circular(16),
                                 ),
-                              ),
-                            );
-                          },
-                          errorBuilder: (context, error, stackTrace) {
-                            return SizedBox(
-                              height: 300,
-                              child: Center(
-                                child: Icon(
-                                  Icons.image_not_supported,
-                                  size: 50,
-                                  color: Colors.grey[400],
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                post.description,
-                                style: const TextStyle(fontSize: 16),
-                              ),
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  InkWell(
-                                    onTap: () => _toggleLike(post),
-                                    child: Row(
-                                      children: [
-                                        Icon(
-                                          post.isLiked
-                                              ? Icons.favorite
-                                              : Icons.favorite_border,
-                                          color:
-                                              post.isLiked ? Colors.red : null,
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Text('${post.likes}'),
-                                      ],
-                                    ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.05),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 2),
                                   ),
-                                  const SizedBox(width: 24),
-                                  InkWell(
-                                    onTap: () => _showComments(post),
-                                    child: Row(
-                                      children: [
-                                        const Icon(Icons.chat_bubble_outline),
-                                        const SizedBox(width: 4),
-                                        Text('${post.comments}'),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(width: 24),
-                                  const Icon(Icons.share_outlined),
                                 ],
                               ),
-                            ],
-                          ),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                  vertical: 8,
+                                ),
+                                child: Row(
+                                  children: [
+                                    const SizedBox(width: 12),
+                                    // User avatar with border
+                                    Stack(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(2),
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            gradient: LinearGradient(
+                                              colors: [
+                                                Colors.green.shade300,
+                                                Colors.green.shade500,
+                                              ],
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                            ),
+                                          ),
+                                          child: Hero(
+                                            tag: 'profile-${post.id}',
+                                            child: CircleAvatar(
+                                              radius: 20,
+                                              backgroundColor: Colors.white,
+                                              backgroundImage:
+                                                  post.userProfileImage != null
+                                                      ? NetworkImage(
+                                                        post.userProfileImage!,
+                                                      )
+                                                      : const AssetImage(
+                                                            'assets/images/account_circle.png',
+                                                          )
+                                                          as ImageProvider,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(width: 12),
+
+                                    // User info
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Text(
+                                                post.userName,
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 15,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 4),
+                                            ],
+                                          ),
+                                          Text(
+                                            post.timeAgo,
+                                            style: TextStyle(
+                                              color: Colors.grey[600],
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+
+                                    // Location badge if available
+                                    if (post.location != null)
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 10,
+                                          vertical: 6,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey[100],
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
+                                          border: Border.all(
+                                            color: Colors.grey[300]!,
+                                            width: 1,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.location_on,
+                                              color: Colors.green[700],
+                                              size: 14,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              post.location!,
+                                              style: TextStyle(
+                                                color: Colors.grey[800],
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    const SizedBox(width: 12),
+                                  ],
+                                ),
+                              ),
+                            ),
+
+                            // Post image with hero animation
+                            Hero(
+                              tag: 'post-image-${post.id}',
+                              child: Container(
+                                height: 300,
+                                width: double.infinity,
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFFF5F5F5),
+                                ),
+                                child: Image.network(
+                                  post.imageUrl,
+                                  fit: BoxFit.cover,
+                                  loadingBuilder: (
+                                    context,
+                                    child,
+                                    loadingProgress,
+                                  ) {
+                                    if (loadingProgress == null) return child;
+                                    return Center(
+                                      child: CircularProgressIndicator(
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              Colors.green,
+                                            ),
+                                        value:
+                                            loadingProgress
+                                                        .expectedTotalBytes !=
+                                                    null
+                                                ? loadingProgress
+                                                        .cumulativeBytesLoaded /
+                                                    loadingProgress
+                                                        .expectedTotalBytes!
+                                                : null,
+                                      ),
+                                    );
+                                  },
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Center(
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Icons.image_not_supported,
+                                            size: 50,
+                                            color: Colors.grey[400],
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            'Image not available',
+                                            style: TextStyle(
+                                              color: Colors.grey[600],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+
+                            // Post description with nice typography
+                            Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Text(
+                                post.description,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  height: 1.4,
+                                ),
+                              ),
+                            ),
+
+                            // Divider before interaction buttons
+                            const Divider(height: 1),
+
+                            // Post interaction buttons
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 8.0,
+                                horizontal: 16.0,
+                              ),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceAround,
+                                children: [
+                                  // Like button
+                                  InkWell(
+                                    onTap: () => _toggleLike(post),
+                                    borderRadius: BorderRadius.circular(30),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 8.0,
+                                        horizontal: 12.0,
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          AnimatedSwitcher(
+                                            duration: const Duration(
+                                              milliseconds: 300,
+                                            ),
+                                            transitionBuilder: (
+                                              Widget child,
+                                              Animation<double> animation,
+                                            ) {
+                                              return ScaleTransition(
+                                                scale: animation,
+                                                child: child,
+                                              );
+                                            },
+                                            child: Icon(
+                                              post.isLiked
+                                                  ? Icons.favorite
+                                                  : Icons.favorite_border,
+                                              key: ValueKey<bool>(post.isLiked),
+                                              color:
+                                                  post.isLiked
+                                                      ? Colors.red
+                                                      : Colors.grey[700],
+                                              size: 22,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            '${post.likes}',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                              color:
+                                                  post.isLiked
+                                                      ? Colors.red
+                                                      : Colors.grey[700],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+
+                                  // Comment button
+                                  InkWell(
+                                    onTap: () => _showComments(post),
+                                    borderRadius: BorderRadius.circular(30),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 8.0,
+                                        horizontal: 12.0,
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.chat_bubble_outline,
+                                            color: Colors.grey[700],
+                                            size: 22,
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            '${post.comments}',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.grey[700],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+
+                                  // Share button
+                                  InkWell(
+                                    onTap: () => _sharePost(post),
+                                    borderRadius: BorderRadius.circular(30),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 8.0,
+                                        horizontal: 12.0,
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.share_outlined,
+                                            color: Colors.grey[700],
+                                            size: 22,
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            'Share',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.grey[700],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  );
-                },
+                      ),
+                    );
+                  },
+                ),
               ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -403,6 +753,8 @@ class _CommunityScreenState extends State<CommunityScreen> {
           ).then((_) => _loadPosts());
         },
         backgroundColor: Colors.green,
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: const Icon(
           Icons.add_photo_alternate_outlined,
           color: Colors.white,
