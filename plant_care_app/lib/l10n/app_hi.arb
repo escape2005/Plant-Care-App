@@ -19,5 +19,21 @@
   "careReminderDesc": "पानी देने और देखभाल कार्यक्रम के बारे में सूचनाएं प्राप्त करें",
   "wateringDesc": "पौधों को पानी देने के लिए दैनिक अनुस्मारक",
   "fertilizingDesc": "उर्वरक कार्यक्रम के लिए सूचनाएं",
-  "communityDesc": "पौधा समुदाय से अपडेट"
+  "communityDesc": "पौधा समुदाय से अपडेट",
+  "profileVisibility": "प्रोफ़ाइल दृश्यता",
+  "visibilitySubtitle": "नियंत्रित करें कि आपकी प्रोफ़ाइल कौन देख सकता है",
+  "activityStatus": "गतिविधि स्थिति",
+  "activitySubtitle": "दिखाएं जब आप सक्रिय हों",
+  "faqs": "सामान्य प्रश्न",
+  "contactSupport": "सहायता से संपर्क करें",
+  "sendFeedback": "प्रतिक्रिया भेजें",
+  "account": "खाता",
+  "notifications": "सूचनाएँ",
+  "privacy": "गोपनीयता",
+  "helpSupport": "सहायता और समर्थन",
+  "additionalSettings": "अतिरिक्त सेटिंग",
+  "myPlants": "मेरे पौधे",
+  "guides": "मार्गदर्शिकाएँ",
+  "community": "समुदाय",
+  "profile": "प्रोफ़ाइल"
 }

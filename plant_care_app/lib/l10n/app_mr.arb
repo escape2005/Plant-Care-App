@@ -19,5 +19,21 @@
   "careReminderDesc": "पाणी देणे आणि काळजी वेळापत्रकाबद्दल सूचना मिळवा",
   "wateringDesc": "वनस्पतींना पाणी देण्यासाठी दैनंदिन स्मरणपत्रे",
   "fertilizingDesc": "खत वेळापत्रकासाठी सूचना",
-  "communityDesc": "वनस्पती समुदायातून अद्यतने"
+  "communityDesc": "वनस्पती समुदायातून अद्यतने",
+  "profileVisibility": "प्रोफाइल दृश्यता",
+  "visibilitySubtitle": "तुमची प्रोफाइल कोण पाहू शकते ते नियंत्रित करा",
+  "activityStatus": "क्रियाकलाप स्थिती",
+  "activitySubtitle": "जेव्हा आपण सक्रिय असाल तेव्हा दाखवा",
+  "faqs": "सामान्य प्रश्न",
+  "contactSupport": "आधाराशी संपर्क साधा",
+  "sendFeedback": "अभिप्राय पाठवा",
+  "account": "खाते",
+  "notifications": "सूचना",
+  "privacy": "गोपनीयता",
+  "helpSupport": "मदत आणि समर्थन",
+  "additionalSettings": "अतिरिक्त सेटिंग",
+  "myPlants": "माझे रोपे",
+  "guides": "मार्गदर्शक",
+  "community": "समुदाय",
+  "profile": "प्रोफाइल"
 }

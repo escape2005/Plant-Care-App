@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 
 class SectionHeading extends StatelessWidget {
-  final String title;
+  final Widget title;
   const SectionHeading({super.key, required this.title});
 
   @override
@@ -11,12 +11,12 @@ class SectionHeading extends StatelessWidget {
       padding: const EdgeInsets.only(left: 16.0, bottom: 16),
       child: Align(
         alignment: Alignment.centerLeft,
-        child: Text(
-          title,
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+        child: DefaultTextStyle(
+          style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
               ),
+          child: title,
         ),
       ),
     );

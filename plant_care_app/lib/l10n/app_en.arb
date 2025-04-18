@@ -64,7 +64,37 @@
   "fertilizingDesc": "Notifications for fertilizing schedule",
   "@fertilizingDesc": {"description": "Fertilizing alerts description"},
   "communityDesc": "Updates from plant community",
-  "@communityDesc": {"description": "Community updates description"}
+  "@communityDesc": {"description": "Community updates description"},
+  "profileVisibility": "Profile Visibility",
+  "@profileVisibility": {"description": "Profile visibility setting title"},
+  "visibilitySubtitle": "Control who can see your profile",
+  "activityStatus": "Activity Status",
+  "@activityStatus": {"description": "Activity status setting title"},
+  "activitySubtitle": "Show when you are active",
+
+  "faqs": "FAQs",
+  "@FAQs": {
+    "description": "Title for Frequently Asked Questions section"
+  },
+  "contactSupport": "Contact Support",
+  "@contactSupport": {
+    "description": "Label for contacting customer support"
+  },
+  "sendFeedback": "Send Feedback",
+  "@sendFeedback": {
+    "description": "Label for feedback submission option"
+  },
+
+  "account": "Account",
+  "notifications": "Notifications",
+  "privacy": "Privacy",
+  "helpSupport": "Help & Support",
+  "additionalSettings": "Additional Setting",
+
+  "myPlants": "My Plants",
+  "guides": "Guides",
+  "community": "Community",
+  "profile": "Profile"
 
   
 }

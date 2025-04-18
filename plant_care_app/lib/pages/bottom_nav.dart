@@ -1,6 +1,5 @@
-
-
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart'; // for translations
 import 'package:plant_care_app/pages/guides/guides_page.dart';
 import 'package:plant_care_app/pages/profile/main_screen.dart';
 import 'my-plants/my_plant.dart';
@@ -39,6 +38,8 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -67,11 +68,11 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
         selectedItemColor: Colors.green,
         unselectedItemColor: Colors.grey,
         showUnselectedLabels: true,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.local_florist), label: 'My Plants'),
-          BottomNavigationBarItem(icon: Icon(Icons.menu_book), label: 'Guides'),
-          BottomNavigationBarItem(icon: Icon(Icons.group), label: 'Community'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+        items: [
+          BottomNavigationBarItem(icon: const Icon(Icons.local_florist), label: loc.myPlants),
+          BottomNavigationBarItem(icon: const Icon(Icons.menu_book), label: loc.guides),
+          BottomNavigationBarItem(icon: const Icon(Icons.group), label: loc.community),
+          BottomNavigationBarItem(icon: const Icon(Icons.person), label: loc.profile),
         ],
       ),
     );

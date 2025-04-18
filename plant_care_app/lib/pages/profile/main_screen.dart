@@ -40,19 +40,19 @@ class _MainScreenState extends State<MainScreen> {
             children: [
               _buildProfileCard(),
               const SizedBox(height: 28),
-              const SectionHeading(title: 'Account'),
+              SectionHeading(title:Text(AppLocalizations.of(context)!.account)),
               _buildAccountSection(context),
               const SizedBox(height: 32),
-              const SectionHeading(title: 'Notifications'),
+              SectionHeading(title: Text(AppLocalizations.of(context)!.notifications)),
               _buildNotificationsSection(),
               const SizedBox(height: 32),
-              const SectionHeading(title:'Privacy'),
+              SectionHeading(title:Text(AppLocalizations.of(context)!.privacy)),
               _buildPrivacySection(),
               const SizedBox(height: 32),
-              const SectionHeading(title:'Help & Support'),
+              SectionHeading(title:Text(AppLocalizations.of(context)!.helpSupport)),
               _buildHelpnSupporttSection(context),
               const SizedBox(height: 32),
-              const SectionHeading(title: 'Additional Setting'),
+              SectionHeading(title: Text(AppLocalizations.of(context)!.additionalSettings)),
               _buildadditionalsetting(context),
 
             ],
@@ -172,22 +172,22 @@ Widget _buildProfileCard() {
 
   Widget _buildNotificationsSection() {
  final notificationOptions = [
-    {
+    { 'key':'plantCareReminders',
       'title': AppLocalizations.of(context)!.plantCareReminders,
       'subtitle': AppLocalizations.of(context)!.careReminderDesc,
       'value': _plantCareEnabled,
     },
-    {
+    { 'key':'wateringSchedule',
       'title': AppLocalizations.of(context)!.wateringSchedule,
       'subtitle': AppLocalizations.of(context)!.wateringDesc,
       'value': _wateringEnabled,
     },
-    {
+    { 'key':'fertilizingAlerts',
       'title': AppLocalizations.of(context)!.fertilizingAlerts,
       'subtitle': AppLocalizations.of(context)!.fertilizingDesc,
       'value': _fertilizingEnabled,
     },
-    {
+    { 'key':'communityUpdates',
       'title': AppLocalizations.of(context)!.communityUpdates,
       'subtitle': AppLocalizations.of(context)!.communityDesc,
       'value': _communityUpdatesEnabled,
@@ -263,17 +263,19 @@ Widget _buildProfileCard() {
 
   void _handleNotificationChange(String title, bool value) {
     setState(() {
-      switch (title) {
-        case 'Plant care Reminders':
+      switch (Key) {
+     
+        case 'plantCareReminders':
           _plantCareEnabled = value;
           break;
-        case 'Watering schedule':
+        case 'wateringSchedule':
           _wateringEnabled = value;
           break;
-        case 'Fertilizing Alerts':
+        case 'fertilizingAlerts':
           _fertilizingEnabled = value;
           break;
-        case 'Community Updates':
+      
+        case 'communityUpdates':
           _communityUpdatesEnabled = value;
           break;
       }
@@ -282,19 +284,18 @@ Widget _buildProfileCard() {
 
 
  Widget _buildPrivacySection() {
-    final privacyOptions = [
-      {
-        'title': 'Profile Visibility',
-        'subtitle': 'Control who can see your profile',
-        'value': _profilevisibilityEnabled,
-      },
-      {
-        'title': 'Activity Status',
-        'subtitle': 'Show when you are active',
-        'value': _activityEnabled,
-      },
-      
-    ];
+  final privacyOptions = [
+    { 'key':'profileVisibility',
+      'title': AppLocalizations.of(context)!.profileVisibility,
+      'subtitle': AppLocalizations.of(context)!.visibilitySubtitle,
+      'value': _profilevisibilityEnabled,
+    },
+    { 'key':'activityStatus',
+      'title': AppLocalizations.of(context)!.activityStatus,
+      'subtitle': AppLocalizations.of(context)!.activitySubtitle,
+      'value': _activityEnabled,
+    },
+  ];
 
     return Column(
       children:  privacyOptions.map((option) {
@@ -327,10 +328,10 @@ Widget _builPrivacyOption({
   required Function(bool) onChanged,
 }) {
   IconData _getIcon(String title) {
-    switch (title) {
-      case 'Profile Visibility':
+    switch (Key) {
+      case 'profileVisibility':
         return Icons.groups; // community/group icon
-      case 'Activity Status':
+      case 'activityStatus':
         return Icons.circle_notifications; // suggestion for activity
       default:
         return Icons.privacy_tip; // fallback icon
@@ -384,11 +385,11 @@ Widget _builPrivacyOption({
 
    void _handlePrivacyChange(String title, bool value) {
     setState(() {
-      switch (title) {
-        case 'Profile Visibility':
+      switch (Key) {
+        case 'profileVisibility':
            _profilevisibilityEnabled = value;
           break;
-        case 'Activity Status':
+        case 'activityStatus':
           _activityEnabled = value;
           break;
         
@@ -402,17 +403,17 @@ Widget _buildHelpnSupporttSection(BuildContext context) {
   final options = [
     {
       'icon': Icons.question_mark_outlined,
-      'title': 'FAQs',
+      'title': AppLocalizations.of(context)!.faqs,
       'page': const FAQsPage()
     },
     {
       'icon': Icons.headset_mic_rounded,
-      'title': 'Contact Support',
+      'title': AppLocalizations.of(context)!.contactSupport,
       'page': const ContactPage()
     },
     {
       'icon': Icons.telegram,
-      'title': 'Send Feedback',
+      'title': AppLocalizations.of(context)!.sendFeedback,
       'page': const SendFeedbackPage()
     },
   ];
