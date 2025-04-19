@@ -459,7 +459,7 @@ Widget _buildHelpnSupporttSection(BuildContext context) {
     {
       'icon': Icons.telegram,
       'title': AppLocalizations.of(context)!.sendFeedback,
-      'page': const SendFeedbackPage()
+      'page': const FeedbackPage()
     },
   ];
 

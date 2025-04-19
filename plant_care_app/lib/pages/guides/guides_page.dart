@@ -73,7 +73,7 @@ class _GuidesPageState extends State<GuidesPage> {
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      color: Colors.green.shade800,
+                      color: const Color.fromRGBO(46, 125, 50, 1),
                     ),
                   ),
                 ),
