@@ -6,14 +6,14 @@ import 'package:intl/intl.dart';
 final supabase = Supabase.instance.client;
 final user = supabase.auth.currentUser;
 
-final userId = user?.id; 
+final userId = user?.id;
 
 class IndiPlants extends StatefulWidget {
   final String speciesName;
   final String scientificName;
   final String? imageUrl;
   final int waterFrequencyDays;
-  
+
   const IndiPlants({
     Key? key,
     required this.speciesName,
@@ -21,7 +21,7 @@ class IndiPlants extends StatefulWidget {
     this.imageUrl,
     required this.waterFrequencyDays,
   }) : super(key: key);
-  
+
   @override
   State<IndiPlants> createState() => _IndiPlantsState();
 }
@@ -30,14 +30,13 @@ class _IndiPlantsState extends State<IndiPlants> {
   String? adoptionId;
   bool isLoading = true;
   String errorMessage = '';
-  
-  
+
   @override
   void initState() {
     super.initState();
     _fetchAdoptionId();
   }
-  
+
   Future<void> _fetchAdoptionId() async {
     try {
       final supabase = Supabase.instance.client;
@@ -49,20 +48,20 @@ class _IndiPlantsState extends State<IndiPlants> {
         });
         return;
       }
-      
+
       // Print some debug information
       print('Fetching plant_id for species: ${widget.speciesName}');
       print('Current user ID: ${user.id}');
-      
+
       // Step 2: Fetch plant_id from plant_catalog based on species_name
       final plantCatalogResponse = await supabase
           .from('plant_catalog')
           .select('plant_id')
           .eq('species_name', widget.speciesName)
           .limit(1);
-      
+
       print('Plant catalog response: $plantCatalogResponse');
-      
+
       if (plantCatalogResponse == null || plantCatalogResponse.isEmpty) {
         setState(() {
           errorMessage = 'Plant not found in catalog';
@@ -70,11 +69,11 @@ class _IndiPlantsState extends State<IndiPlants> {
         });
         return;
       }
-      
+
       // Step 3: Extract the plant_id
       final plantId = plantCatalogResponse[0]['plant_id'];
       print('Found plant_id: $plantId for species: ${widget.speciesName}');
-      
+
       // Step 4: Get adoption_id using plant_id and user_id
       final adoptionResponse = await supabase
           .from('adoption_record')
@@ -82,9 +81,9 @@ class _IndiPlantsState extends State<IndiPlants> {
           .eq('plant_id', plantId)
           .eq('user_id', user.id)
           .limit(1);
-      
+
       print('Adoption response: $adoptionResponse');
-      
+
       if (adoptionResponse == null || adoptionResponse.isEmpty) {
         setState(() {
           errorMessage = 'Adoption record not found';
@@ -92,11 +91,11 @@ class _IndiPlantsState extends State<IndiPlants> {
         });
         return;
       }
-      
+
       // Step 5: Store the adoption_id
       final id = adoptionResponse[0]['adoption_id'];
       print('Found adoption_id: $id');
-      
+
       setState(() {
         adoptionId = id.toString();
         isLoading = false;
@@ -109,7 +108,7 @@ class _IndiPlantsState extends State<IndiPlants> {
       });
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -130,17 +129,23 @@ class _IndiPlantsState extends State<IndiPlants> {
           ),
         ],
       ),
-      body: isLoading 
-          ? const Center(child: CircularProgressIndicator())
-          : adoptionId == null
-              ? Center(child: Text('Error: $errorMessage', style: TextStyle(color: Colors.red)))
-              : PlantDetailsWidget(
-                  adoptionId: adoptionId!,
-                  speciesName: widget.speciesName,
-                  scientificName: widget.scientificName,
-                  imageUrl: widget.imageUrl,
-                  waterFrequencyDays: widget.waterFrequencyDays,
+      body:
+          isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : adoptionId == null
+              ? Center(
+                child: Text(
+                  'Error: $errorMessage',
+                  style: TextStyle(color: Colors.red),
                 ),
+              )
+              : PlantDetailsWidget(
+                adoptionId: adoptionId!,
+                speciesName: widget.speciesName,
+                scientificName: widget.scientificName,
+                imageUrl: widget.imageUrl,
+                waterFrequencyDays: widget.waterFrequencyDays,
+              ),
     );
   }
 }
@@ -175,14 +180,14 @@ class _PlantDetailsWidgetState extends State<PlantDetailsWidget> {
   DateTime? adoptionDateTime;
   List<DateTime> wateredDays = [];
   late DateTime today;
-  
+
   @override
   void initState() {
     super.initState();
     today = _getToday();
     _loadData();
   }
-  
+
   DateTime _getToday() {
     final now = DateTime.now();
     return DateTime(now.year, now.month, now.day);
@@ -190,10 +195,7 @@ class _PlantDetailsWidgetState extends State<PlantDetailsWidget> {
 
   Future<void> _loadData() async {
     try {
-      await Future.wait([
-        fetchAdoptionDate(),
-        fetchAllWateringActivities(),
-      ]);
+      await Future.wait([fetchAdoptionDate(), fetchAllWateringActivities()]);
       fetchLastWateringActivity();
     } catch (e) {
       print('Error loading data: $e');
@@ -203,13 +205,14 @@ class _PlantDetailsWidgetState extends State<PlantDetailsWidget> {
   Future<void> fetchAdoptionDate() async {
     try {
       final supabase = Supabase.instance.client;
-      
-      final response = await supabase
-          .from('adoption_record')
-          .select('adoption_date')
-          .eq('adoption_id', widget.adoptionId)
-          .single();
-      
+
+      final response =
+          await supabase
+              .from('adoption_record')
+              .select('adoption_date')
+              .eq('adoption_id', widget.adoptionId)
+              .single();
+
       if (response != null && response['adoption_date'] != null) {
         adoptionDateTime = DateTime.parse(response['adoption_date']);
         print('Adoption date: $adoptionDateTime');
@@ -222,19 +225,25 @@ class _PlantDetailsWidgetState extends State<PlantDetailsWidget> {
   Future<void> fetchAllWateringActivities() async {
     try {
       final supabase = Supabase.instance.client;
-      
+
       final response = await supabase
           .from('daily_activity')
           .select('activity_time')
           .eq('adoption_id', widget.adoptionId)
           .order('activity_time', ascending: true);
-      
+
       if (response != null && response.isNotEmpty) {
-        wateredDays = response
-            .map<DateTime>((activity) => DateTime.parse(activity['activity_time']))
-            .map<DateTime>((dateTime) => DateTime(dateTime.year, dateTime.month, dateTime.day))
-            .toList();
-        
+        wateredDays =
+            response
+                .map<DateTime>(
+                  (activity) => DateTime.parse(activity['activity_time']),
+                )
+                .map<DateTime>(
+                  (dateTime) =>
+                      DateTime(dateTime.year, dateTime.month, dateTime.day),
+                )
+                .toList();
+
         print('Fetched ${wateredDays.length} watering activities');
       }
     } catch (e) {
@@ -245,10 +254,10 @@ class _PlantDetailsWidgetState extends State<PlantDetailsWidget> {
   Future<void> fetchLastWateringActivity() async {
     try {
       final supabase = Supabase.instance.client;
-      
+
       // Print debug information
       print('Fetching watering activity for adoption_id: ${widget.adoptionId}');
-      
+
       // Fetch the latest activity_time for the given adoption_id
       final response = await supabase
           .from('daily_activity')
@@ -263,25 +272,28 @@ class _PlantDetailsWidgetState extends State<PlantDetailsWidget> {
         // Parse the timestamp
         final activityTimeStr = response[0]['activity_time'];
         lastWateredDateTime = DateTime.parse(activityTimeStr);
-        
+
         // Format the date for display
-        lastWateredDate = DateFormat('MMMM d, yyyy').format(lastWateredDateTime!);
-        
+        lastWateredDate = DateFormat(
+          'MMMM d, yyyy',
+        ).format(lastWateredDateTime!);
+
         // Calculate watering progress
         final now = DateTime.now();
         final difference = now.difference(lastWateredDateTime!).inDays;
-        
+
         // The maximum days (denominator) is the water frequency or default to 15
-        final maxDays = widget.waterFrequencyDays > 0 ? widget.waterFrequencyDays : 15;
-        
+        final maxDays =
+            widget.waterFrequencyDays > 0 ? widget.waterFrequencyDays : 15;
+
         // Calculate progress as days since last watered divided by max days
         wateringProgress = difference / maxDays;
-        
+
         // Cap progress at 1.0 (100%)
         if (wateringProgress > 1.0) {
           wateringProgress = 1.0;
         }
-        
+
         // Determine status based on progress
         if (wateringProgress < 0.4) {
           wateringStatus = 'Healthy';
@@ -316,27 +328,28 @@ class _PlantDetailsWidgetState extends State<PlantDetailsWidget> {
   }
 
   bool _isWateredDay(DateTime day) {
-    return wateredDays.any((wateredDay) => 
-      wateredDay.year == day.year && 
-      wateredDay.month == day.month && 
-      wateredDay.day == day.day
+    return wateredDays.any(
+      (wateredDay) =>
+          wateredDay.year == day.year &&
+          wateredDay.month == day.month &&
+          wateredDay.day == day.day,
     );
   }
 
   bool _isBeforeAdoptionDate(DateTime day) {
     if (adoptionDateTime == null) return false;
-    
+
     // Compare only date components without time
     final adoptionDate = DateTime(
-      adoptionDateTime!.year, 
-      adoptionDateTime!.month, 
-      adoptionDateTime!.day
+      adoptionDateTime!.year,
+      adoptionDateTime!.month,
+      adoptionDateTime!.day,
     );
-    
+
     final compareDate = DateTime(day.year, day.month, day.day);
     return compareDate.isBefore(adoptionDate);
   }
-  
+
   bool _isPastOrToday(DateTime day) {
     final compareDate = DateTime(day.year, day.month, day.day);
     return compareDate.compareTo(today) <= 0;
@@ -348,20 +361,22 @@ class _PlantDetailsWidgetState extends State<PlantDetailsWidget> {
       children: [
         const Divider(height: 1, thickness: 1),
 
-        // Plant Image with Details Overlay
+        // Using Expanded to prevent overflow
         Expanded(
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Plant Image with Details Overlay
                 Stack(
                   alignment: Alignment.bottomLeft,
                   children: [
                     Image.network(
-                      widget.imageUrl ?? 'https://cdn.pixabay.com/photo/2020/06/21/19/49/mango-5326518_1280.jpg',
+                      widget.imageUrl ??
+                          'https://cdn.pixabay.com/photo/2020/06/21/19/49/mango-5326518_1280.jpg',
                       fit: BoxFit.cover,
                       width: double.infinity,
-                      height: 340,
+                      height: 300,
                     ),
                     Container(
                       width: double.infinity,
@@ -379,27 +394,39 @@ class _PlantDetailsWidgetState extends State<PlantDetailsWidget> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            widget.speciesName,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 32,
-                              fontWeight: FontWeight.bold,
+                          // Using FittedBox to prevent overflow of text
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              widget.speciesName,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
-                          Text(
-                            widget.scientificName,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
+                          // Using FittedBox for scientific name
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              widget.scientificName,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 8),
-                          Text(
-                            'Last watered on $lastWateredDate',
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 16,
+                          // Using FittedBox for last watered date
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              'Last watered on $lastWateredDate',
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 16,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -428,22 +455,29 @@ class _PlantDetailsWidgetState extends State<PlantDetailsWidget> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Fixed row layout for status
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
-                            'Watering Status',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w500,
+                          const Flexible(
+                            child: Text(
+                              'Watering Status',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          Text(
-                            wateringStatus,
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w500,
-                              color: statusColor,
+                          Flexible(
+                            child: Text(
+                              wateringStatus,
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w500,
+                                color: statusColor,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
@@ -452,60 +486,74 @@ class _PlantDetailsWidgetState extends State<PlantDetailsWidget> {
                       isLoading
                           ? const Center(child: CircularProgressIndicator())
                           : ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: LinearProgressIndicator(
-                                value: wateringProgress,
-                                backgroundColor: Colors.green[50],
-                                color: wateringProgress < 0.4
-                                    ? Colors.green[500]
-                                    : wateringProgress < 0.7
-                                        ? Colors.orange
-                                        : Colors.red,
-                                minHeight: 20,
-                              ),
+                            borderRadius: BorderRadius.circular(8),
+                            child: LinearProgressIndicator(
+                              value: wateringProgress,
+                              backgroundColor: Colors.green[50],
+                              color:
+                                  wateringProgress < 0.4
+                                      ? Colors.green[500]
+                                      : wateringProgress < 0.7
+                                      ? Colors.orange
+                                      : Colors.red,
+                              minHeight: 20,
                             ),
+                          ),
                       const SizedBox(height: 20),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      // Modified plant stats layout to prevent overflow
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.thermostat_outlined,
-                                color: Colors.green[400],
-                              ),
-                              const SizedBox(width: 4),
-                              const Text(
-                                '24°C',
-                                style: TextStyle(fontSize: 16),
-                              ),
-                            ],
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4.0),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.thermostat_outlined,
+                                  color: Colors.green[400],
+                                ),
+                                const SizedBox(width: 4),
+                                const Text(
+                                  '24°C',
+                                  style: TextStyle(fontSize: 16),
+                                ),
+                              ],
+                            ),
                           ),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.water_drop_outlined,
-                                color: Colors.green[400],
-                              ),
-                              const SizedBox(width: 4),
-                              const Text(
-                                '65% Humidity',
-                                style: TextStyle(fontSize: 16),
-                              ),
-                            ],
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4.0),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.water_drop_outlined,
+                                  color: Colors.green[400],
+                                ),
+                                const SizedBox(width: 4),
+                                const Text(
+                                  '65% Humidity',
+                                  style: TextStyle(fontSize: 16),
+                                ),
+                              ],
+                            ),
                           ),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.access_time,
-                                color: Colors.green[400],
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                '${widget.waterFrequencyDays} days cycle',
-                                style: const TextStyle(fontSize: 16),
-                              ),
-                            ],
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4.0),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.access_time,
+                                  color: Colors.green[400],
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '${widget.waterFrequencyDays} days cycle',
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -513,7 +561,7 @@ class _PlantDetailsWidgetState extends State<PlantDetailsWidget> {
                   ),
                 ),
 
-                // Watering Calendar Schedule - Updated to only color past and today's dates
+                // Watering Calendar Schedule - Using LayoutBuilder to handle calendar width
                 Container(
                   margin: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -528,141 +576,199 @@ class _PlantDetailsWidgetState extends State<PlantDetailsWidget> {
                       ),
                     ],
                   ),
-                  child: TableCalendar(
-                    focusedDay: DateTime.now(),
-                    firstDay: DateTime(2025, 01, 01),
-                    lastDay: DateTime(2025, 12, 31),
-                    calendarFormat: CalendarFormat.month,
-                    selectedDayPredicate: (day) {
-                      return lastWateredDateTime != null &&
-                          isSameDay(lastWateredDateTime!, day);
-                    },
-                    enabledDayPredicate: (day) {
-                      // Disable dates before adoption date
-                      return !_isBeforeAdoptionDate(day);
-                    },
-                    calendarStyle: const CalendarStyle(
-                      // Default styling for the calendar
-                      markersMaxCount: 0,
-                      markersAnchor: 0,
-                      markerMargin: EdgeInsets.only(top: 8),
-                      markerSize: 8,
-                      markerDecoration: BoxDecoration(
-                        color: Colors.red,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    // Use calendarBuilders to customize individual day cells
-                    calendarBuilders: CalendarBuilders(
-                      defaultBuilder: (context, date, _) {
-                        // Only apply special styling to past dates and today
-                        if (_isPastOrToday(date)) {
-                          // Apply green background for watered days
-                          if (_isWateredDay(date)) {
-                            return Container(
-                              margin: const EdgeInsets.all(4.0),
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: Colors.green[100],
-                                shape: BoxShape.circle,
-                              ),
-                              child: Text(
-                                '${date.day}',
-                                style: const TextStyle(color: Colors.black),
-                              ),
-                            );
-                          } 
-                          // Apply red background for non-watered past days
-                          else {
-                            return Container(
-                              margin: const EdgeInsets.all(4.0),
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: Colors.red[100],
-                                shape: BoxShape.circle,
-                              ),
-                              child: Text(
-                                '${date.day}',
-                                style: const TextStyle(color: Colors.black),
-                              ),
-                            );
-                          }
-                        }
-                        return null; // Return null to use default styling for future dates
-                      },
-                      todayBuilder: (context, date, _) {
-                        // Custom builder for today
-                        if (_isWateredDay(date)) {
-                          return Container(
-                            margin: const EdgeInsets.all(4.0),
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: Colors.green[100],
-                              border: Border.all(color: Colors.green, width: 2),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Text(
-                              '${date.day}',
-                              style: const TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          );
-                        } else {
-                          return Container(
-                            margin: const EdgeInsets.all(4.0),
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: Colors.red[100],
-                              border: Border.all(color: Colors.blue, width: 2),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Text(
-                              '${date.day}',
-                              style: const TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          );
-                        }
-                      },
-                      selectedBuilder: (context, date, _) {
-                        // Custom builder for selected day
-                        return Container(
-                          margin: const EdgeInsets.all(4.0),
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: _isWateredDay(date) ? Colors.green : Colors.blue,
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return TableCalendar(
+                        focusedDay: DateTime.now(),
+                        firstDay: DateTime(2025, 01, 01),
+                        lastDay: DateTime(2025, 12, 31),
+                        calendarFormat: CalendarFormat.month,
+                        availableCalendarFormats: const {
+                          CalendarFormat.month: 'Month',
+                          CalendarFormat.twoWeeks: '2 Weeks',
+                          CalendarFormat.week: 'Week',
+                        },
+                        selectedDayPredicate: (day) {
+                          return lastWateredDateTime != null &&
+                              isSameDay(lastWateredDateTime!, day);
+                        },
+                        enabledDayPredicate: (day) {
+                          // Disable dates before adoption date
+                          return !_isBeforeAdoptionDate(day);
+                        },
+                        calendarStyle: CalendarStyle(
+                          // Default styling for the calendar
+                          markersMaxCount: 0,
+                          markersAnchor: 0,
+                          markerMargin: const EdgeInsets.only(top: 8),
+                          markerSize: 8,
+                          markerDecoration: const BoxDecoration(
+                            color: Colors.red,
                             shape: BoxShape.circle,
                           ),
-                          child: Text(
-                            '${date.day}',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
+                          // Make sure the day cells don't overflow
+                          cellMargin: const EdgeInsets.all(2),
+                          cellPadding: const EdgeInsets.all(0),
+                        ),
+                        // Smaller row height to prevent overflow in smaller devices
+                        rowHeight: 48,
+                        // Use calendarBuilders to customize individual day cells
+                        calendarBuilders: CalendarBuilders(
+                          defaultBuilder: (context, date, _) {
+                            // Only apply special styling to past dates and today
+                            if (_isPastOrToday(date)) {
+                              // Apply green background for watered days
+                              if (_isWateredDay(date)) {
+                                return Container(
+                                  margin: const EdgeInsets.all(2.0),
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
+                                    color: Colors.green[100],
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Text(
+                                    '${date.day}',
+                                    style: const TextStyle(color: Colors.black),
+                                  ),
+                                );
+                              }
+                              // Apply red background for non-watered past days
+                              else {
+                                return Container(
+                                  margin: const EdgeInsets.all(2.0),
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
+                                    color: Colors.red[100],
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Text(
+                                    '${date.day}',
+                                    style: const TextStyle(color: Colors.black),
+                                  ),
+                                );
+                              }
+                            }
+                            return null; // Return null to use default styling for future dates
+                          },
+                          todayBuilder: (context, date, _) {
+                            // Custom builder for today
+                            if (_isWateredDay(date)) {
+                              return Container(
+                                margin: const EdgeInsets.all(2.0),
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  color: Colors.green[100],
+                                  border: Border.all(
+                                    color: Colors.green,
+                                    width: 2,
+                                  ),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Text(
+                                  '${date.day}',
+                                  style: const TextStyle(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              );
+                            } else {
+                              return Container(
+                                margin: const EdgeInsets.all(2.0),
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  color: Colors.red[100],
+                                  border: Border.all(
+                                    color: Colors.blue,
+                                    width: 2,
+                                  ),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Text(
+                                  '${date.day}',
+                                  style: const TextStyle(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              );
+                            }
+                          },
+                          selectedBuilder: (context, date, _) {
+                            // Custom builder for selected day
+                            return Container(
+                              margin: const EdgeInsets.all(2.0),
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color:
+                                    _isWateredDay(date)
+                                        ? Colors.green
+                                        : Colors.blue,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Text(
+                                '${date.day}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            );
+                          },
+                          disabledBuilder: (context, date, _) {
+                            // Custom builder for disabled days (before adoption)
+                            return Container(
+                              margin: const EdgeInsets.all(2.0),
+                              alignment: Alignment.center,
+                              child: Text(
+                                '${date.day}',
+                                style: TextStyle(
+                                  color: Colors.grey[400],
+                                  fontSize:
+                                      14, // Smaller font size for disabled dates
+                                ),
+                              ),
+                            );
+                          },
+                          // Customize header style to prevent overflow
+                          headerTitleBuilder: (context, date) {
+                            return Center(
+                              child: Text(
+                                DateFormat.yMMMM().format(date),
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            );
+                          },
+                        ),
+                        daysOfWeekStyle: const DaysOfWeekStyle(
+                          // Smaller weekday labels to prevent overflow
+                          weekdayStyle: TextStyle(fontSize: 12),
+                          weekendStyle: TextStyle(fontSize: 12),
+                        ),
+                        headerStyle: HeaderStyle(
+                          formatButtonVisible:
+                              constraints.maxWidth >
+                              320, // Hide format button on very small screens
+                          titleCentered: true,
+                          formatButtonShowsNext: false,
+                          formatButtonDecoration: BoxDecoration(
+                            color: Colors.green[400],
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                        );
-                      },
-                      disabledBuilder: (context, date, _) {
-                        // Custom builder for disabled days (before adoption)
-                        return Container(
-                          margin: const EdgeInsets.all(4.0),
-                          alignment: Alignment.center,
-                          child: Text(
-                            '${date.day}',
-                            style: TextStyle(
-                              color: Colors.grey[400],
-                            ),
+                          formatButtonTextStyle: const TextStyle(
+                            color: Colors.white,
                           ),
-                        );
-                      },
-                    ),
-                    // Provide the watered days to the event loader for markers
-                    eventLoader: (day) {
-                      return [];
+                          titleTextStyle: const TextStyle(fontSize: 16),
+                        ),
+                        // Provide the watered days to the event loader for markers
+                        eventLoader: (day) {
+                          return [];
+                        },
+                      );
                     },
                   ),
                 ),
@@ -677,23 +783,25 @@ class _PlantDetailsWidgetState extends State<PlantDetailsWidget> {
                       try {
                         final supabase = Supabase.instance.client;
                         final now = DateTime.now().toUtc().toIso8601String();
-                        
-                        final response = await supabase.from('daily_activity').insert({
-                          'user_id': userId,
-                          'adoption_id': widget.adoptionId,
-                          'activity_time': now,
-                        });
-                        
+
+                        final response = await supabase
+                            .from('daily_activity')
+                            .insert({
+                              'user_id': userId,
+                              'adoption_id': widget.adoptionId,
+                              'activity_time': now,
+                            });
+
                         print('Water now response: $response');
-                        
+
                         // Add the new watering date to our list
                         setState(() {
                           wateredDays.add(today);
                         });
-                        
+
                         // Refresh the data
                         fetchLastWateringActivity();
-                        
+
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text('Watering recorded successfully!'),
@@ -722,12 +830,13 @@ class _PlantDetailsWidgetState extends State<PlantDetailsWidget> {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
                     ),
                   ),
                 ),
 
-                const SizedBox(height: 60),
+                const SizedBox(height: 20),
               ],
             ),
           ),
