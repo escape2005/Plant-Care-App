@@ -1,4 +1,3 @@
-// lib/pages/guides/guides_page.dart
 import 'package:flutter/material.dart';
 import '../../models/guide.dart';
 import '../../models/faq.dart';
@@ -60,69 +59,10 @@ class _GuidesPageState extends State<GuidesPage> {
                     ),
                   ),
                 ),
-                SizedBox(
-                  height: 220, // Fixed height for the grid
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                    child: GridView.builder(
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 12,
-                        mainAxisSpacing: 12,
-                        childAspectRatio: 1.5,
-                      ),
-                      itemCount: categories.length,
-                      itemBuilder: (context, index) {
-                        final category = categories[index];
-                        return GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => GuidesListPage(category: category),
-                              ),
-                            );
-                          },
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: category.color,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            padding: const EdgeInsets.all(10),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  category.icon,
-                                  color: category.textColor,
-                                  size: 20,
-                                ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  category.title,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: category.textColor,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  '${category.count} guides',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.green.shade400,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
+                // Replacing fixed-height SizedBox with a more dynamic approach
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                  child: _buildCategoryGrid(categories),
                 ),
                 
                 // FAQs Section
@@ -153,14 +93,79 @@ class _GuidesPageState extends State<GuidesPage> {
     );
   }
 
-  // Updated FAQs Accordion Builder with fix for expansion issue
+  // New method to build the category grid dynamically
+  Widget _buildCategoryGrid(List<GuideCategory> categories) {
+    // Calculate number of rows needed (2 items per row)
+    final int rowCount = (categories.length / 2).ceil();
+    
+    return GridView.builder(
+      shrinkWrap: true, // Important: makes the grid take only the space it needs
+      physics: const NeverScrollableScrollPhysics(), // Disable scrolling for the grid
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 1.5,
+      ),
+      itemCount: categories.length,
+      itemBuilder: (context, index) {
+        final category = categories[index];
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => GuidesListPage(category: category),
+              ),
+            );
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              color: category.color,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            padding: const EdgeInsets.all(10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  category.icon,
+                  color: category.textColor,
+                  size: 20,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  category.title,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: category.textColor,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${category.count} guides',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.green.shade400,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // Updated FAQs Accordion Builder
   Widget _buildFaqsAccordion() {
     return ExpansionPanelList(
       elevation: 1,
       expandedHeaderPadding: const EdgeInsets.all(0),
       expansionCallback: (int index, bool isExpanded) {
         setState(() {
-          // This is the key fix - toggle the expansion state correctly
           faqs[index].isExpanded = !faqs[index].isExpanded;
         });
       },
