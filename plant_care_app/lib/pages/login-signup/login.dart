@@ -57,7 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
         await supabase.from('user_details').insert({
           'id': res.user!.id,
           'user_name': res.user!.userMetadata?['full_name'] ?? 'User',
-          'user_id': res.user!.email,
+          'user_email': res.user!.email,
         });
       }
 

@@ -35,5 +35,13 @@
   "myPlants": "माझे रोपे",
   "guides": "मार्गदर्शक",
   "community": "समुदाय",
-  "profile": "प्रोफाइल"
+  "profile": "प्रोफाइल",
+  "changePhoto": "फोटो बदला",
+  "name": "नाव",
+  "username": "वापरकर्तानाव",
+  "bio": "माहिती",
+  "email": "ईमेल",
+  "location": "स्थान",
+  "saveChanges": "बदल जतन करा",
+  "profileUpdated": "प्रोफाईल यशस्वीरित्या अद्यतनित करण्यात आली"
 }

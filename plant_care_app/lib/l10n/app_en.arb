@@ -94,7 +94,22 @@
   "myPlants": "My Plants",
   "guides": "Guides",
   "community": "Community",
-  "profile": "Profile"
+  "profile": "Profile",
+
+  "changePhoto": "Change Photo",
+
+  "name": "Name",
+  "username": "Username",
+  "bio": "Bio",
+  "email": "Email",
+  "location": "Location",
+
+  "saveChanges": "Save Changes",
+
+  "profileUpdated": "Profile updated successfully",
+  "@profileUpdated": {
+    "description": "Success message after profile update"
+  }
 
   
 }

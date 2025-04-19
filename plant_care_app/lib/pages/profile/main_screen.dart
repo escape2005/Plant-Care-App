@@ -9,6 +9,7 @@ import 'package:plant_care_app/pages/provider/locale_provider.dart';
 import 'package:plant_care_app/pages/provider/theme_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 
 
@@ -20,6 +21,7 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
+  // Keep all existing state variables
   bool _plantCareEnabled = true;
   bool _wateringEnabled = true;
   bool _fertilizingEnabled = true;
@@ -27,18 +29,51 @@ class _MainScreenState extends State<MainScreen> {
   bool _profilevisibilityEnabled = true;
   bool _activityEnabled = true;
   bool _showThemeOptions = false;
+  
+  // Add these new variables
+  String _userEmail = '';
+  String _userName = '';
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData(); // Add this initialization
+  }
+
+  // Add this new method
+  Future<void> _loadUserData() async {
+    try {
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user != null) {
+        final response = await Supabase.instance.client
+            .from('user_details')
+            .select()
+            .eq('id', user.id)
+            .single();
+
+        setState(() {
+          _userEmail = response['user_email'] ?? '';
+          _userName = response['user_name'] ?? '';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      print('Error loading profile: $e');
+      setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-     
-     
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
               _buildProfileCard(),
+              // Keep all existing widgets below exactly as they were
               const SizedBox(height: 28),
               SectionHeading(title:Text(AppLocalizations.of(context)!.account)),
               _buildAccountSection(context),
@@ -54,7 +89,6 @@ class _MainScreenState extends State<MainScreen> {
               const SizedBox(height: 32),
               SectionHeading(title: Text(AppLocalizations.of(context)!.additionalSettings)),
               _buildadditionalsetting(context),
-
             ],
           ),
         ),
@@ -62,53 +96,64 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-Widget _buildProfileCard() {
-  return Card(
-    elevation: 4,
-    color: Theme.of(context).cardColor,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(16),
-    ),
-    child: Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 30,
-                backgroundImage: const AssetImage('assets/images/plant.jpg'),
-                backgroundColor: Theme.of(context).cardColor,
-              ),
-              const SizedBox(width: 16),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    AppLocalizations.of(context)!.profileName,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).textTheme.bodyLarge?.color,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    AppLocalizations.of(context)!.profileEmail,
-                    style: TextStyle(
-                      color: Theme.of(context).textTheme.bodyMedium?.color,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ],
+  // Modified profile card widget
+  Widget _buildProfileCard() {
+    return Card(
+      elevation: 4,
+      color: Theme.of(context).cardColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
       ),
-    ),
-  );
-}
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 30,
+                  backgroundImage: const AssetImage('assets/images/plant.jpg'),
+                  backgroundColor: Theme.of(context).cardColor,
+                ),
+                const SizedBox(width: 16),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      // Modified line
+                      _isLoading ? AppLocalizations.of(context)!.profileName : 
+                        (_userName.isNotEmpty ? _userName : AppLocalizations.of(context)!.profileName),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).textTheme.bodyLarge?.color,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      // Modified line
+                      _isLoading ? AppLocalizations.of(context)!.profileEmail : 
+                        (_userEmail.isNotEmpty ? _userEmail : AppLocalizations.of(context)!.profileEmail),
+                      style: TextStyle(
+                        color: Theme.of(context).textTheme.bodyMedium?.color,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Keep all your existing methods exactly as they were:
+  // _buildAccountSection, _buildNotificationsSection, 
+  // _buildPrivacySection, _buildHelpnSupporttSection, 
+  // _buildadditionalsetting, etc.
+
 
   Widget _buildAccountSection(BuildContext context) {
     final options = [
