@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:plant_care_app/pages/profile/Delete_Account.dart';
 import 'package:plant_care_app/pages/profile/change_password.dart';
 import 'package:plant_care_app/pages/profile/contact.dart';
 import 'package:plant_care_app/pages/profile/edit_profile.dart';
@@ -168,9 +169,10 @@ class _MainScreenState extends State<MainScreen> {
         'page': const ChangePasswordPage()
       },
       {  'icon': Icons.delete, 
-         'title': AppLocalizations.of(context)!.deleteAccount,  
+         'title': AppLocalizations.of(context)!.deleteAccount,
+         'page' : const DeletePage() 
          
-         'page': null},
+         },
     ];
 
     return Column(
