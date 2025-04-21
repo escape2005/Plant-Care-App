@@ -42,10 +42,6 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.green),
-          onPressed: () => Navigator.pushReplacementNamed(context, '/home'),
-        ),
         title: const Text('Plantify', style: TextStyle(color: Colors.green)),
         backgroundColor: Colors.white,
         elevation: 0,

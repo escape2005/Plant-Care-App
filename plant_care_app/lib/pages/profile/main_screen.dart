@@ -12,8 +12,6 @@ import 'package:provider/provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-
-
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
@@ -30,7 +28,7 @@ class _MainScreenState extends State<MainScreen> {
   bool _profilevisibilityEnabled = true;
   bool _activityEnabled = true;
   bool _showThemeOptions = false;
-  
+
   // Add these new variables
   String _userEmail = '';
   String _userName = '';
@@ -47,11 +45,12 @@ class _MainScreenState extends State<MainScreen> {
     try {
       final user = Supabase.instance.client.auth.currentUser;
       if (user != null) {
-        final response = await Supabase.instance.client
-            .from('user_details')
-            .select()
-            .eq('id', user.id)
-            .single();
+        final response =
+            await Supabase.instance.client
+                .from('user_details')
+                .select()
+                .eq('id', user.id)
+                .single();
 
         setState(() {
           _userEmail = response['user_email'] ?? '';
@@ -76,19 +75,29 @@ class _MainScreenState extends State<MainScreen> {
               _buildProfileCard(),
               // Keep all existing widgets below exactly as they were
               const SizedBox(height: 28),
-              SectionHeading(title:Text(AppLocalizations.of(context)!.account)),
+              SectionHeading(
+                title: Text(AppLocalizations.of(context)!.account),
+              ),
               _buildAccountSection(context),
               const SizedBox(height: 32),
-              SectionHeading(title: Text(AppLocalizations.of(context)!.notifications)),
+              SectionHeading(
+                title: Text(AppLocalizations.of(context)!.notifications),
+              ),
               _buildNotificationsSection(),
               const SizedBox(height: 32),
-              SectionHeading(title:Text(AppLocalizations.of(context)!.privacy)),
+              SectionHeading(
+                title: Text(AppLocalizations.of(context)!.privacy),
+              ),
               _buildPrivacySection(),
               const SizedBox(height: 32),
-              SectionHeading(title:Text(AppLocalizations.of(context)!.helpSupport)),
+              SectionHeading(
+                title: Text(AppLocalizations.of(context)!.helpSupport),
+              ),
               _buildHelpnSupporttSection(context),
               const SizedBox(height: 32),
-              SectionHeading(title: Text(AppLocalizations.of(context)!.additionalSettings)),
+              SectionHeading(
+                title: Text(AppLocalizations.of(context)!.additionalSettings),
+              ),
               _buildadditionalsetting(context),
             ],
           ),
@@ -102,9 +111,7 @@ class _MainScreenState extends State<MainScreen> {
     return Card(
       elevation: 4,
       color: Theme.of(context).cardColor,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -122,8 +129,11 @@ class _MainScreenState extends State<MainScreen> {
                   children: [
                     Text(
                       // Modified line
-                      _isLoading ? AppLocalizations.of(context)!.profileName : 
-                        (_userName.isNotEmpty ? _userName : AppLocalizations.of(context)!.profileName),
+                      _isLoading
+                          ? AppLocalizations.of(context)!.profileName
+                          : (_userName.isNotEmpty
+                              ? _userName
+                              : AppLocalizations.of(context)!.profileName),
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -133,8 +143,11 @@ class _MainScreenState extends State<MainScreen> {
                     const SizedBox(height: 4),
                     Text(
                       // Modified line
-                      _isLoading ? AppLocalizations.of(context)!.profileEmail : 
-                        (_userEmail.isNotEmpty ? _userEmail : AppLocalizations.of(context)!.profileEmail),
+                      _isLoading
+                          ? AppLocalizations.of(context)!.profileEmail
+                          : (_userEmail.isNotEmpty
+                              ? _userEmail
+                              : AppLocalizations.of(context)!.profileEmail),
                       style: TextStyle(
                         color: Theme.of(context).textTheme.bodyMedium?.color,
                         fontSize: 14,
@@ -151,116 +164,129 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   // Keep all your existing methods exactly as they were:
-  // _buildAccountSection, _buildNotificationsSection, 
-  // _buildPrivacySection, _buildHelpnSupporttSection, 
+  // _buildAccountSection, _buildNotificationsSection,
+  // _buildPrivacySection, _buildHelpnSupporttSection,
   // _buildadditionalsetting, etc.
-
 
   Widget _buildAccountSection(BuildContext context) {
     final options = [
       {
         'icon': Icons.person,
-        'title':AppLocalizations.of(context)!.editProfile,
-        'page': const EditProfilePage()
+        'title': AppLocalizations.of(context)!.editProfile,
+        'page': const EditProfilePage(),
       },
       {
         'icon': Icons.lock,
         'title': AppLocalizations.of(context)!.changePassword,
-        'page': const ChangePasswordPage()
+        'page': const ChangePasswordPage(),
       },
-      {  'icon': Icons.delete, 
-         'title': AppLocalizations.of(context)!.deleteAccount,
-         'page' : const DeletePage() 
-         
-         },
+      {
+        'icon': Icons.delete,
+        'title': AppLocalizations.of(context)!.deleteAccount,
+        'page': const DeletePage(),
+      },
     ];
 
     return Column(
       children: [
-        ...options.map((option) => Container(
-              margin: const EdgeInsets.only(bottom: 16),
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color.fromARGB(255, 213, 213, 213),
-                    spreadRadius: 2,
-                    blurRadius: 8,
-                  ),
-                ],
-              ),
-              child: ListTile(
-                leading: Icon(option['icon'] as IconData, color:Theme.of(context).iconTheme.color),
-                title: Text(
-                  option['title'] as String,
-                  style: TextStyle(
-                    color: Theme.of(context).textTheme.bodyLarge?.color,
-                  ),
+        ...options.map(
+          (option) => Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color.fromARGB(255, 213, 213, 213),
+                  spreadRadius: 2,
+                  blurRadius: 8,
                 ),
-                trailing: Icon(
-                  Icons.chevron_right,
-                  color: Theme.of(context).iconTheme.color,
-                  ),
-                onTap: () {
-                  if (option['page'] != null) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => option['page'] as Widget),
-                    );
-                  }
-                },
+              ],
+            ),
+            child: ListTile(
+              leading: Icon(
+                option['icon'] as IconData,
+                color: Theme.of(context).iconTheme.color,
               ),
-            )),
+              title: Text(
+                option['title'] as String,
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                ),
+              ),
+              trailing: Icon(
+                Icons.chevron_right,
+                color: Theme.of(context).iconTheme.color,
+              ),
+              onTap: () {
+                if (option['page'] != null) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => option['page'] as Widget,
+                    ),
+                  );
+                }
+              },
+            ),
+          ),
+        ),
       ],
     );
   }
 
   Widget _buildNotificationsSection() {
- final notificationOptions = [
-    { 'key':'plantCareReminders',
-      'title': AppLocalizations.of(context)!.plantCareReminders,
-      'subtitle': AppLocalizations.of(context)!.careReminderDesc,
-      'value': _plantCareEnabled,
-    },
-    { 'key':'wateringSchedule',
-      'title': AppLocalizations.of(context)!.wateringSchedule,
-      'subtitle': AppLocalizations.of(context)!.wateringDesc,
-      'value': _wateringEnabled,
-    },
-    { 'key':'fertilizingAlerts',
-      'title': AppLocalizations.of(context)!.fertilizingAlerts,
-      'subtitle': AppLocalizations.of(context)!.fertilizingDesc,
-      'value': _fertilizingEnabled,
-    },
-    { 'key':'communityUpdates',
-      'title': AppLocalizations.of(context)!.communityUpdates,
-      'subtitle': AppLocalizations.of(context)!.communityDesc,
-      'value': _communityUpdatesEnabled,
-    },
-  ];
+    final notificationOptions = [
+      {
+        'key': 'plantCareReminders',
+        'title': AppLocalizations.of(context)!.plantCareReminders,
+        'subtitle': AppLocalizations.of(context)!.careReminderDesc,
+        'value': _plantCareEnabled,
+      },
+      {
+        'key': 'wateringSchedule',
+        'title': AppLocalizations.of(context)!.wateringSchedule,
+        'subtitle': AppLocalizations.of(context)!.wateringDesc,
+        'value': _wateringEnabled,
+      },
+      {
+        'key': 'fertilizingAlerts',
+        'title': AppLocalizations.of(context)!.fertilizingAlerts,
+        'subtitle': AppLocalizations.of(context)!.fertilizingDesc,
+        'value': _fertilizingEnabled,
+      },
+      {
+        'key': 'communityUpdates',
+        'title': AppLocalizations.of(context)!.communityUpdates,
+        'subtitle': AppLocalizations.of(context)!.communityDesc,
+        'value': _communityUpdatesEnabled,
+      },
+    ];
 
     return Column(
-      children: notificationOptions.map((option) {
-        return Column(
-          children: [
-            _buildNotificationOption(
-              title: option['title'] as String,
-              subtitle: option['subtitle'] as String,
-              value: option['value'] as bool,
-              onChanged: (value) =>
-                  _handleNotificationChange(option['title'] as String, value),
-            ),
-            if (option['title'] != 'Community Updates')
-              const Divider(
-                height: 1,
-                thickness: 0.5,
-                color: Color(0xFFE0E0E0),
-              ),
-          ],
-        );
-      }).toList(),
+      children:
+          notificationOptions.map((option) {
+            return Column(
+              children: [
+                _buildNotificationOption(
+                  title: option['title'] as String,
+                  subtitle: option['subtitle'] as String,
+                  value: option['value'] as bool,
+                  onChanged:
+                      (value) => _handleNotificationChange(
+                        option['title'] as String,
+                        value,
+                      ),
+                ),
+                if (option['title'] != 'Community Updates')
+                  const Divider(
+                    height: 1,
+                    thickness: 0.5,
+                    color: Color(0xFFE0E0E0),
+                  ),
+              ],
+            );
+          }).toList(),
     );
   }
 
@@ -297,10 +323,7 @@ class _MainScreenState extends State<MainScreen> {
             padding: const EdgeInsets.only(top: 4, left: 2),
             child: Text(
               subtitle,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
             ),
           ),
         ],
@@ -310,140 +333,129 @@ class _MainScreenState extends State<MainScreen> {
 
   void _handleNotificationChange(String title, bool value) {
     setState(() {
-      switch (Key) {
-     
-        case 'plantCareReminders':
-          _plantCareEnabled = value;
-          break;
-        case 'wateringSchedule':
-          _wateringEnabled = value;
-          break;
-        case 'fertilizingAlerts':
-          _fertilizingEnabled = value;
-          break;
-      
-        case 'communityUpdates':
-          _communityUpdatesEnabled = value;
-          break;
+      // Using a mapping approach instead of switch case with incorrect Key variable
+      if (title == AppLocalizations.of(context)!.plantCareReminders) {
+        _plantCareEnabled = value;
+      } else if (title == AppLocalizations.of(context)!.wateringSchedule) {
+        _wateringEnabled = value;
+      } else if (title == AppLocalizations.of(context)!.fertilizingAlerts) {
+        _fertilizingEnabled = value;
+      } else if (title == AppLocalizations.of(context)!.communityUpdates) {
+        _communityUpdatesEnabled = value;
       }
     });
   }
 
-
- Widget _buildPrivacySection() {
-  final privacyOptions = [
-    { 'key':'profileVisibility',
-      'title': AppLocalizations.of(context)!.profileVisibility,
-      'subtitle': AppLocalizations.of(context)!.visibilitySubtitle,
-      'value': _profilevisibilityEnabled,
-    },
-    { 'key':'activityStatus',
-      'title': AppLocalizations.of(context)!.activityStatus,
-      'subtitle': AppLocalizations.of(context)!.activitySubtitle,
-      'value': _activityEnabled,
-    },
-  ];
+  Widget _buildPrivacySection() {
+    final privacyOptions = [
+      {
+        'key': 'profileVisibility',
+        'title': AppLocalizations.of(context)!.profileVisibility,
+        'subtitle': AppLocalizations.of(context)!.visibilitySubtitle,
+        'value': _profilevisibilityEnabled,
+      },
+      {
+        'key': 'activityStatus',
+        'title': AppLocalizations.of(context)!.activityStatus,
+        'subtitle': AppLocalizations.of(context)!.activitySubtitle,
+        'value': _activityEnabled,
+      },
+    ];
 
     return Column(
-      children:  privacyOptions.map((option) {
-        return Column(
-          children: [
-            _builPrivacyOption(
-              title: option['title'] as String,
-              subtitle: option['subtitle'] as String,
-              value: option['value'] as bool,
-              onChanged: (value) =>
-                  _handlePrivacyChange(option['title'] as String, value),
-            ),
-            if (option['title'] != 'Community Updates')
-              const Divider(
-                height: 1,
-                thickness: 0.5,
-                color: Color(0xFFE0E0E0),
-              ),
-          ],
-        );
-      }).toList(),
+      children:
+          privacyOptions.map((option) {
+            return Column(
+              children: [
+                _builPrivacyOption(
+                  title: option['title'] as String,
+                  subtitle: option['subtitle'] as String,
+                  value: option['value'] as bool,
+                  onChanged:
+                      (value) => _handlePrivacyChange(
+                        option['title'] as String,
+                        value,
+                      ),
+                ),
+                if (option['title'] != 'Community Updates')
+                  const Divider(
+                    height: 1,
+                    thickness: 0.5,
+                    color: Color(0xFFE0E0E0),
+                  ),
+              ],
+            );
+          }).toList(),
     );
   }
 
-
-Widget _builPrivacyOption({
-  required String title,
-  required String subtitle,
-  required bool value,
-  required Function(bool) onChanged,
-}) {
-  IconData _getIcon(String title) {
-    switch (Key) {
-      case 'profileVisibility':
+  Widget _builPrivacyOption({
+    required String title,
+    required String subtitle,
+    required bool value,
+    required Function(bool) onChanged,
+  }) {
+    IconData _getIcon(String title) {
+      if (title == AppLocalizations.of(context)!.profileVisibility) {
         return Icons.groups; // community/group icon
-      case 'activityStatus':
-        return Icons.circle_notifications; // suggestion for activity
-      default:
+      } else if (title == AppLocalizations.of(context)!.activityStatus) {
+        return Icons.circle_notifications; // for activity status
+      } else {
         return Icons.privacy_tip; // fallback icon
+      }
     }
-  }
 
-  return Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                Icon(_getIcon(title), color: Colors.grey[700]),
-                const SizedBox(width: 8),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(_getIcon(title), color: Colors.grey[700]),
+                  const SizedBox(width: 8),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            Switch(
-              value: value,
-              onChanged: onChanged,
-              activeColor: Colors.green,
-              activeTrackColor: Colors.green.shade100,
-            ),
-          ],
-        ),
-        Padding(
-          padding: const EdgeInsets.only(top: 4, left: 2),
-          child: Text(
-            subtitle,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[600],
+                ],
+              ),
+              Switch(
+                value: value,
+                onChanged: onChanged,
+                activeColor: Colors.green,
+                activeTrackColor: Colors.green.shade100,
+              ),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.only(top: 4, left: 2),
+            child: Text(
+              subtitle,
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
             ),
           ),
-        ),
-      ],
-    ),
-  );
-}
+        ],
+      ),
+    );
+  }
 
-
-   void _handlePrivacyChange(String title, bool value) {
+  void _handlePrivacyChange(String title, bool value) {
     setState(() {
-      switch (Key) {
-        case 'profileVisibility':
-           _profilevisibilityEnabled = value;
-          break;
-        case 'activityStatus':
-          _activityEnabled = value;
-          break;
-        
+      // Using consistent approach with notification toggles
+      if (title == AppLocalizations.of(context)!.profileVisibility) {
+        _profilevisibilityEnabled = value;
+      } else if (title == AppLocalizations.of(context)!.activityStatus) {
+        _activityEnabled = value;
       }
     });
   }
-
 }
 
 Widget _buildHelpnSupporttSection(BuildContext context) {
@@ -451,75 +463,81 @@ Widget _buildHelpnSupporttSection(BuildContext context) {
     {
       'icon': Icons.question_mark_outlined,
       'title': AppLocalizations.of(context)!.faqs,
-      'page': const FAQsPage()
+      'page': const FAQsPage(),
     },
     {
       'icon': Icons.headset_mic_rounded,
       'title': AppLocalizations.of(context)!.contactSupport,
-      'page': const ContactPage()
+      'page': const ContactPage(),
     },
     {
       'icon': Icons.telegram,
       'title': AppLocalizations.of(context)!.sendFeedback,
-      'page': const FeedbackPage()
+      'page': const FeedbackPage(),
     },
   ];
 
   return Column(
-    children: options.map((option) {
-      return Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color:const Color.fromARGB(255, 213, 213, 213),
-              spreadRadius: 2,
-              blurRadius: 8,
-            ),
-          ],
-        ),
-        child: ListTile(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          leading: Icon(
-            option['icon'] as IconData,
-            color: Theme.of(context).iconTheme.color,
-            size: 28,
-          ),
-          title: Text(
-            option['title'] as String,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: Theme.of(context).textTheme.bodyLarge?.color,
-            ),
-          ),
-          trailing: Icon(
-            Icons.chevron_right,
-            color: Theme.of(context).iconTheme.color,
-          ),
-          onTap: () {
-            if (option['page'] != null) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => option['page'] as Widget,
+    children:
+        options.map((option) {
+          return Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color.fromARGB(255, 213, 213, 213),
+                  spreadRadius: 2,
+                  blurRadius: 8,
                 ),
-              );
-            }
-          },
-        ),
-      );
-    }).toList(),
+              ],
+            ),
+            child: ListTile(
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 8,
+              ),
+              leading: Icon(
+                option['icon'] as IconData,
+                color: Theme.of(context).iconTheme.color,
+                size: 28,
+              ),
+              title: Text(
+                option['title'] as String,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                ),
+              ),
+              trailing: Icon(
+                Icons.chevron_right,
+                color: Theme.of(context).iconTheme.color,
+              ),
+              onTap: () {
+                if (option['page'] != null) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => option['page'] as Widget,
+                    ),
+                  );
+                }
+              },
+            ),
+          );
+        }).toList(),
   );
 }
 
 Widget _buildadditionalsetting(BuildContext context) {
   // Changed from ThemeProvider to include LocaleProvider
   final themeProvider = Provider.of<ThemeProvider>(context);
-  final localeProvider = Provider.of<LocaleProvider>(context); // Added locale provider
-  
+  final localeProvider = Provider.of<LocaleProvider>(
+    context,
+  ); // Added locale provider
+
   // Changed from hardcoded 'English' to dynamic localization
   final appVersion = '2.1.0';
 
@@ -543,72 +561,76 @@ Widget _buildadditionalsetting(BuildContext context) {
   ];
 
   return Column(
-    children: options.map((option) {
-      Widget trailingWidget;
-      
-      switch (option['type']) {
-        case 'language':
-          // Updated to show localized language name
-          trailingWidget = Text(
-            _getCurrentLanguageName(context, localeProvider.locale),
-            style: TextStyle(
-              color: Theme.of(context).textTheme.bodyMedium?.color,
-              fontSize: 14,
-            ),
-          );
-          break;
-        
-        case 'theme':
-          trailingWidget = Consumer<ThemeProvider>(
-            builder: (context, themeProvider, _) {
-              return Switch(
-                value: themeProvider.isDarkMode,
-                onChanged: (value) => themeProvider.toggleTheme(value),
-                activeColor: Colors.green,
-                activeTrackColor: Colors.green.shade100,
+    children:
+        options.map((option) {
+          Widget trailingWidget;
+
+          switch (option['type']) {
+            case 'language':
+              // Updated to show localized language name
+              trailingWidget = Text(
+                _getCurrentLanguageName(context, localeProvider.locale),
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.bodyMedium?.color,
+                  fontSize: 14,
+                ),
               );
+              break;
+
+            case 'theme':
+              trailingWidget = Consumer<ThemeProvider>(
+                builder: (context, themeProvider, _) {
+                  return Switch(
+                    value: themeProvider.isDarkMode,
+                    onChanged: (value) => themeProvider.toggleTheme(value),
+                    activeColor: Colors.green,
+                    activeTrackColor: Colors.green.shade100,
+                  );
+                },
+              );
+              break;
+
+            case 'version':
+              trailingWidget = Text(
+                appVersion,
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.bodyMedium?.color,
+                  fontSize: 14,
+                ),
+              );
+              break;
+
+            default:
+              trailingWidget = const Icon(Icons.chevron_right);
+          }
+
+          return ListTile(
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 8,
+            ),
+            leading: Icon(
+              option['icon'] as IconData,
+              color: Theme.of(context).iconTheme.color,
+              size: 28,
+            ),
+            title: Text(
+              option['title'] as String,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Theme.of(context).textTheme.bodyLarge?.color,
+              ),
+            ),
+            trailing: trailingWidget,
+            onTap: () {
+              if (option['type'] == 'language') {
+                // Added language selection dialog
+                _showLanguageDialog(context, localeProvider);
+              }
             },
           );
-          break;
-        
-        case 'version':
-          trailingWidget = Text(
-            appVersion,
-            style: TextStyle(
-              color: Theme.of(context).textTheme.bodyMedium?.color,
-              fontSize: 14,
-            ),
-          );
-          break;
-        
-        default:
-          trailingWidget = const Icon(Icons.chevron_right);
-      }
-
-      return ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: Icon(
-          option['icon'] as IconData,
-          color: Theme.of(context).iconTheme.color,
-          size: 28,
-        ),
-        title: Text(
-          option['title'] as String,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: Theme.of(context).textTheme.bodyLarge?.color,
-          ),
-        ),
-        trailing: trailingWidget,
-        onTap: () {
-          if (option['type'] == 'language') {
-            // Added language selection dialog
-            _showLanguageDialog(context, localeProvider);
-          }
-        },
-      );
-    }).toList(),
+        }).toList(),
   );
 }
 
@@ -628,34 +650,35 @@ String _getCurrentLanguageName(BuildContext context, Locale? locale) {
 void _showLanguageDialog(BuildContext context, LocaleProvider provider) {
   showDialog(
     context: context,
-    builder: (context) => AlertDialog(
-      title: Text(AppLocalizations.of(context)!.chooseLanguage),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ListTile(
-            title: Text(AppLocalizations.of(context)!.english),
-            onTap: () {
-              provider.setLocale(const Locale('en'));
-              Navigator.pop(context);
-            },
+    builder:
+        (context) => AlertDialog(
+          title: Text(AppLocalizations.of(context)!.chooseLanguage),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                title: Text(AppLocalizations.of(context)!.english),
+                onTap: () {
+                  provider.setLocale(const Locale('en'));
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                title: Text(AppLocalizations.of(context)!.hindi),
+                onTap: () {
+                  provider.setLocale(const Locale('hi'));
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                title: Text(AppLocalizations.of(context)!.marathi),
+                onTap: () {
+                  provider.setLocale(const Locale('mr'));
+                  Navigator.pop(context);
+                },
+              ),
+            ],
           ),
-          ListTile(
-            title: Text(AppLocalizations.of(context)!.hindi),
-            onTap: () {
-              provider.setLocale(const Locale('hi'));
-              Navigator.pop(context);
-            },
-          ),
-          ListTile(
-            title: Text(AppLocalizations.of(context)!.marathi),
-            onTap: () {
-              provider.setLocale(const Locale('mr'));
-              Navigator.pop(context);
-            },
-          ),
-        ],
-      ),
-    ),
+        ),
   );
 }
