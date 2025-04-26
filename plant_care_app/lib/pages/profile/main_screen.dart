@@ -468,7 +468,7 @@ Widget _buildHelpnSupporttSection(BuildContext context) {
     {
       'icon': Icons.headset_mic_rounded,
       'title': AppLocalizations.of(context)!.contactSupport,
-      'page': const ContactPage(),
+      'page': const ContactScreen(),
     },
     {
       'icon': Icons.telegram,
