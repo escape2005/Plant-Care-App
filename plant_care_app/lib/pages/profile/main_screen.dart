@@ -85,11 +85,11 @@ class _MainScreenState extends State<MainScreen> {
               ),
               _buildNotificationsSection(),
               const SizedBox(height: 32),
-              SectionHeading(
-                title: Text(AppLocalizations.of(context)!.privacy),
-              ),
-              _buildPrivacySection(),
-              const SizedBox(height: 32),
+              // SectionHeading(
+              //   title: Text(AppLocalizations.of(context)!.privacy),
+              // ),
+              // _buildPrivacySection(),
+              // const SizedBox(height: 32),
               SectionHeading(
                 title: Text(AppLocalizations.of(context)!.helpSupport),
               ),
@@ -243,24 +243,24 @@ class _MainScreenState extends State<MainScreen> {
         'subtitle': AppLocalizations.of(context)!.careReminderDesc,
         'value': _plantCareEnabled,
       },
-      {
-        'key': 'wateringSchedule',
-        'title': AppLocalizations.of(context)!.wateringSchedule,
-        'subtitle': AppLocalizations.of(context)!.wateringDesc,
-        'value': _wateringEnabled,
-      },
-      {
-        'key': 'fertilizingAlerts',
-        'title': AppLocalizations.of(context)!.fertilizingAlerts,
-        'subtitle': AppLocalizations.of(context)!.fertilizingDesc,
-        'value': _fertilizingEnabled,
-      },
-      {
-        'key': 'communityUpdates',
-        'title': AppLocalizations.of(context)!.communityUpdates,
-        'subtitle': AppLocalizations.of(context)!.communityDesc,
-        'value': _communityUpdatesEnabled,
-      },
+      // {
+      //   'key': 'wateringSchedule',
+      //   'title': AppLocalizations.of(context)!.wateringSchedule,
+      //   'subtitle': AppLocalizations.of(context)!.wateringDesc,
+      //   'value': _wateringEnabled,
+      // },
+      // {
+      //   'key': 'fertilizingAlerts',
+      //   'title': AppLocalizations.of(context)!.fertilizingAlerts,
+      //   'subtitle': AppLocalizations.of(context)!.fertilizingDesc,
+      //   'value': _fertilizingEnabled,
+      // },
+      // {
+      //   'key': 'communityUpdates',
+      //   'title': AppLocalizations.of(context)!.communityUpdates,
+      //   'subtitle': AppLocalizations.of(context)!.communityDesc,
+      //   'value': _communityUpdatesEnabled,
+      // },
     ];
 
     return Column(

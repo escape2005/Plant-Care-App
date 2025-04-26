@@ -180,6 +180,7 @@ class _PlantDetailsWidgetState extends State<PlantDetailsWidget> {
   DateTime? adoptionDateTime;
   List<DateTime> wateredDays = [];
   late DateTime today;
+  bool wateredToday = false;
 
   @override
   void initState() {
@@ -277,10 +278,37 @@ class _PlantDetailsWidgetState extends State<PlantDetailsWidget> {
         lastWateredDate = DateFormat(
           'MMMM d, yyyy',
         ).format(lastWateredDateTime!);
+        print('Last watered date: $lastWateredDate');
 
         // Calculate watering progress
         final now = DateTime.now();
-        final difference = now.difference(lastWateredDateTime!).inDays;
+        final nowDate = DateTime(now.year, now.month, now.day);
+        final lastWateredDateOnly = DateTime(
+          lastWateredDateTime!.year,
+          lastWateredDateTime!.month,
+          lastWateredDateTime!.day,
+        );
+        final difference = nowDate.difference(lastWateredDateOnly).inDays;
+
+        void checkWateredToday() {
+          if (lastWateredDateTime != null) {
+            final now = DateTime.now();
+            final todayDate = DateTime(now.year, now.month, now.day);
+            final lastWateredDateOnly = DateTime(
+              lastWateredDateTime!.year,
+              lastWateredDateTime!.month,
+              lastWateredDateTime!.day,
+            );
+
+            // Check if the last watered date is today
+            wateredToday = todayDate.isAtSameMomentAs(lastWateredDateOnly);
+            print('Watered today: $wateredToday');
+          } else {
+            wateredToday = false;
+          }
+        }
+
+        print('Days since last watered: $difference');
 
         // The maximum days (denominator) is the water frequency or default to 15
         final maxDays =
@@ -299,12 +327,13 @@ class _PlantDetailsWidgetState extends State<PlantDetailsWidget> {
           wateringStatus = 'Healthy';
           statusColor = Colors.green;
         } else if (wateringProgress < 0.7) {
-          wateringStatus = 'Needs attention soon';
+          wateringStatus = 'Needs attention \nsoon';
           statusColor = Colors.orange;
         } else {
-          wateringStatus = 'Needs watering!';
+          wateringStatus = 'Needs \nwatering!';
           statusColor = Colors.red;
         }
+        checkWateredToday();
       } else {
         // No watering record found
         lastWateredDate = 'No watering record found';
@@ -470,14 +499,16 @@ class _PlantDetailsWidgetState extends State<PlantDetailsWidget> {
                             ),
                           ),
                           Flexible(
+                            fit: FlexFit.loose,
                             child: Text(
                               wateringStatus,
                               style: TextStyle(
-                                fontSize: 18,
+                                fontSize: 15,
                                 fontWeight: FontWeight.w500,
                                 color: statusColor,
                               ),
                               overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.right,
                             ),
                           ),
                         ],
@@ -487,18 +518,44 @@ class _PlantDetailsWidgetState extends State<PlantDetailsWidget> {
                           ? const Center(child: CircularProgressIndicator())
                           : ClipRRect(
                             borderRadius: BorderRadius.circular(8),
-                            child: LinearProgressIndicator(
-                              value: wateringProgress,
-                              backgroundColor: Colors.green[50],
-                              color:
-                                  wateringProgress < 0.4
-                                      ? Colors.green[500]
-                                      : wateringProgress < 0.7
-                                      ? Colors.orange
-                                      : Colors.red,
-                              minHeight: 20,
+                            child: Stack(
+                              children: [
+                                Container(
+                                  height: 20,
+                                  decoration: BoxDecoration(
+                                    color: Colors.green[50],
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                FractionallySizedBox(
+                                  widthFactor:
+                                      1.0 -
+                                      wateringProgress, // Inverted to show water level
+                                  child: Container(
+                                    height: 20,
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          wateringProgress < 0.4
+                                              ? Colors.green.shade700
+                                              : wateringProgress < 0.7
+                                              ? Colors.orange.shade700
+                                              : Colors.red.shade700,
+                                          wateringProgress < 0.4
+                                              ? Colors.green.shade400
+                                              : wateringProgress < 0.7
+                                              ? Colors.orange.shade400
+                                              : Colors.red.shade400,
+                                        ],
+                                      ),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
+
                       const SizedBox(height: 20),
                       // Modified plant stats layout to prevent overflow
                       Column(
@@ -778,55 +835,66 @@ class _PlantDetailsWidgetState extends State<PlantDetailsWidget> {
                   margin: const EdgeInsets.all(16),
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () async {
-                      // Update the water status in the database
-                      try {
-                        final supabase = Supabase.instance.client;
-                        final now = DateTime.now().toUtc().toIso8601String();
+                    onPressed:
+                        wateredToday
+                            ? null // Disable button if already watered today
+                            : () async {
+                              // Update the water status in the database
+                              try {
+                                final supabase = Supabase.instance.client;
+                                final now =
+                                    DateTime.now().toUtc().toIso8601String();
 
-                        final response = await supabase
-                            .from('daily_activity')
-                            .insert({
-                              'user_id': userId,
-                              'adoption_id': widget.adoptionId,
-                              'activity_time': now,
-                            });
+                                final response = await supabase
+                                    .from('daily_activity')
+                                    .insert({
+                                      'user_id': userId,
+                                      'adoption_id': widget.adoptionId,
+                                      'activity_time': now,
+                                    });
 
-                        print('Water now response: $response');
+                                print('Water now response: $response');
 
-                        // Add the new watering date to our list
-                        setState(() {
-                          wateredDays.add(today);
-                        });
+                                // Add the new watering date to our list
+                                setState(() {
+                                  wateredDays.add(today);
+                                  wateredToday =
+                                      true; // Update watered today status
+                                });
 
-                        // Refresh the data
-                        fetchLastWateringActivity();
+                                // Refresh the data
+                                fetchLastWateringActivity();
 
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Watering recorded successfully!'),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
-                      } catch (e) {
-                        print('Error recording watering: $e');
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Error recording watering: $e'),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                      }
-                    },
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Watering recorded successfully!',
+                                    ),
+                                    backgroundColor: Colors.green,
+                                  ),
+                                );
+                              } catch (e) {
+                                print('Error recording watering: $e');
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'Error recording watering: $e',
+                                    ),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                            },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      backgroundColor:
+                          wateredToday ? Colors.grey : Colors.green,
+                      padding: const EdgeInsets.symmetric(vertical: 10),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text(
-                      'Water Now',
+                    child: Text(
+                      wateredToday ? 'Already Watered' : 'Water Now',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -835,7 +903,6 @@ class _PlantDetailsWidgetState extends State<PlantDetailsWidget> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 20),
               ],
             ),

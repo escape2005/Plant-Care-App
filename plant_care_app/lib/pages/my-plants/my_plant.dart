@@ -24,6 +24,7 @@ class Plant {
   DateTime?
   lastWateredDate; // Added field to track when the plant was last watered
   final String? timeToWater; // Add this field to store time_to_water
+  final String? plantId;
 
   Plant({
     required this.speciesName,
@@ -37,6 +38,7 @@ class Plant {
     required this.userId,
     this.lastWateredDate,
     this.timeToWater,
+    this.plantId,
   });
 
   factory Plant.fromMap(Map<String, dynamic> map) {
@@ -51,6 +53,7 @@ class Plant {
       currentAvailability: map['current_availability'],
       userId: map['user_id'] ?? '',
       timeToWater: map['time_to_water'],
+      plantId: map['plant_id'],
     );
   }
 }
@@ -98,6 +101,7 @@ Future<List<Plant>> fetchPlants() async {
           currentAvailability: plantData['current_availability'],
           userId: user.id,
           timeToWater: plantData['time_to_water'], // Add this line
+          plantId: data['plant_id'],
         );
       }).toList();
 
@@ -191,6 +195,24 @@ Future<List<Map<String, dynamic>>> fetchAvailablePlants() async {
   }
 
   return [];
+}
+
+Future<bool> _checkIfRequestExists(String plantId) async {
+  final supabase = Supabase.instance.client;
+  final user = supabase.auth.currentUser;
+
+  if (user == null) {
+    return false;
+  }
+
+  final response = await supabase
+      .from('adoption_requests')
+      .select()
+      .eq('plant_id', plantId)
+      .eq('user_id', user.id)
+      .limit(1);
+
+  return response.isNotEmpty;
 }
 
 class MyPlantsScreen extends StatefulWidget {
@@ -771,70 +793,70 @@ class _MyPlantsScreenState extends State<MyPlantsScreen> {
           ),
 
           // Sixth Section - Call Reminder Test Button
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
-                  width: 1,
-                ),
-              ),
-              child: Column(
-                children: [
-                  Container(
-                    width: 70,
-                    height: 70,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primaryContainer,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.notifications_active,
-                      color: Theme.of(context).colorScheme.primary,
-                      size: 36,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Test Notification',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Send a test notification immediately',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: _sendTestNotification,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).colorScheme.primary,
-                      minimumSize: const Size(double.infinity, 50),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: Text(
-                      'Call Reminder',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onPrimary,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          // Padding(
+          //   padding: const EdgeInsets.all(16),
+          //   child: Container(
+          //     padding: const EdgeInsets.all(24),
+          //     decoration: BoxDecoration(
+          //       color: Theme.of(context).colorScheme.surface,
+          //       borderRadius: BorderRadius.circular(12),
+          //       border: Border.all(
+          //         color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+          //         width: 1,
+          //       ),
+          //     ),
+          //     child: Column(
+          //       children: [
+          //         Container(
+          //           width: 70,
+          //           height: 70,
+          //           decoration: BoxDecoration(
+          //             color: Theme.of(context).colorScheme.primaryContainer,
+          //             shape: BoxShape.circle,
+          //           ),
+          //           child: Icon(
+          //             Icons.notifications_active,
+          //             color: Theme.of(context).colorScheme.primary,
+          //             size: 36,
+          //           ),
+          //         ),
+          //         const SizedBox(height: 16),
+          //         Text(
+          //           'Test Notification',
+          //           style: Theme.of(context).textTheme.titleMedium?.copyWith(
+          //             fontWeight: FontWeight.bold,
+          //           ),
+          //         ),
+          //         const SizedBox(height: 8),
+          //         Text(
+          //           'Send a test notification immediately',
+          //           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+          //             color: Theme.of(context).colorScheme.onSurfaceVariant,
+          //           ),
+          //           textAlign: TextAlign.center,
+          //         ),
+          //         const SizedBox(height: 24),
+          //         ElevatedButton(
+          //           onPressed: _sendTestNotification,
+          //           style: ElevatedButton.styleFrom(
+          //             backgroundColor: Theme.of(context).colorScheme.primary,
+          //             minimumSize: const Size(double.infinity, 50),
+          //             shape: RoundedRectangleBorder(
+          //               borderRadius: BorderRadius.circular(12),
+          //             ),
+          //           ),
+          //           child: Text(
+          //             'Call Reminder',
+          //             style: TextStyle(
+          //               color: Theme.of(context).colorScheme.onPrimary,
+          //               fontSize: 16,
+          //             ),
+          //           ),
+          //         ),
+          //       ],
+          //     ),
+          //   ),
+          // ),
         ],
       ),
     );
@@ -1100,42 +1122,153 @@ class _MyPlantsScreenState extends State<MyPlantsScreen> {
                     ),
 
                     const SizedBox(height: 24),
-
                     // Adopt Now button
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          // Handle the adoption process - left empty for now as requested
-                          // adoptPlant(plant['id']);
-                          Navigator.pop(context);
-
-                          // You might want to navigate to adopt_plant.dart here
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => AdoptPlant(plant: plant),
+                    FutureBuilder<bool>(
+                      // Check if the user has already requested this plant
+                      future: _checkIfRequestExists(plant['plant_id']),
+                      builder: (context, snapshot) {
+                        // Show loading indicator while checking
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
+                            child: SizedBox(
+                              width: double.infinity,
+                              height: 50,
+                              child: Center(child: CircularProgressIndicator()),
                             ),
                           );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              Theme.of(context).colorScheme.primary,
-                          foregroundColor:
-                              Theme.of(context).colorScheme.onPrimary,
-                          minimumSize: const Size(double.infinity, 50),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                        }
+
+                        // If request exists, show "Request Sent" button
+                        if (snapshot.hasData && snapshot.data == true) {
+                          return SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: null, // Disabled button
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    Theme.of(context).colorScheme.surface,
+                                foregroundColor:
+                                    Theme.of(context).colorScheme.primary,
+                                minimumSize: const Size(double.infinity, 50),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: const Text(
+                                'Request Sent to NGO',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          );
+                        }
+
+                        // If no request exists, show "Adopt Now" button
+                        return SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              final supabase = Supabase.instance.client;
+                              final user = supabase.auth.currentUser;
+                              if (user != null) {
+                                try {
+                                  // Add the adoption request to the table
+                                  await supabase
+                                      .from('adoption_requests')
+                                      .insert({
+                                        'plant_id': plant['plant_id'],
+                                        'user_id': user.id,
+                                      });
+
+                                  // Close the dialog
+                                  Navigator.pop(context);
+
+                                  // Show success message
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        'Adoption request sent to the NGO!',
+                                        style: TextStyle(
+                                          color:
+                                              Theme.of(
+                                                context,
+                                              ).colorScheme.onPrimary,
+                                        ),
+                                      ),
+                                      backgroundColor:
+                                          Theme.of(context).colorScheme.primary,
+                                      behavior: SnackBarBehavior.floating,
+                                      duration: const Duration(seconds: 3),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ),
+                                  );
+                                } catch (e) {
+                                  // Handle errors
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        'Error sending adoption request: ${e.toString()}',
+                                        style: TextStyle(
+                                          color:
+                                              Theme.of(
+                                                context,
+                                              ).colorScheme.onError,
+                                        ),
+                                      ),
+                                      backgroundColor:
+                                          Theme.of(context).colorScheme.error,
+                                      behavior: SnackBarBehavior.floating,
+                                      duration: const Duration(seconds: 3),
+                                    ),
+                                  );
+                                  print('Error sending adoption request: $e');
+                                }
+                              } else {
+                                // User not authenticated
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'You need to be logged in to adopt a plant',
+                                      style: TextStyle(
+                                        color:
+                                            Theme.of(
+                                              context,
+                                            ).colorScheme.onError,
+                                      ),
+                                    ),
+                                    backgroundColor:
+                                        Theme.of(context).colorScheme.error,
+                                    behavior: SnackBarBehavior.floating,
+                                    duration: const Duration(seconds: 3),
+                                  ),
+                                );
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  Theme.of(context).colorScheme.primary,
+                              foregroundColor:
+                                  Theme.of(context).colorScheme.onPrimary,
+                              minimumSize: const Size(double.infinity, 50),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text(
+                              'Adopt Now',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
-                        ),
-                        child: const Text(
-                          'Adopt Now',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -1289,7 +1422,14 @@ class _MyPlantsScreenState extends State<MyPlantsScreen> {
 
     if (lastWateredDate != null) {
       final now = DateTime.now();
-      final difference = now.difference(lastWateredDate).inDays;
+      final nowDate = DateTime(now.year, now.month, now.day);
+      final newlastWateredDate = DateTime(
+        lastWateredDate!.year,
+        lastWateredDate!.month,
+        lastWateredDate!.day,
+      );
+      final difference = nowDate.difference(newlastWateredDate).inDays;
+      daysSinceWatered = difference;
 
       // The maximum days (denominator) is the water frequency or default to 15
       final maxDays = waterFrequencyDays > 0 ? waterFrequencyDays : 15;
@@ -1614,7 +1754,7 @@ class _MyPlantsScreenState extends State<MyPlantsScreen> {
                     onDateTimeChanged: (selectedDate, selectedTime) {
                       _updateDateTime(selectedDate, selectedTime);
                     },
-                  ),  
+                  ),
                   const SizedBox(height: 20),
                 ],
               ),
