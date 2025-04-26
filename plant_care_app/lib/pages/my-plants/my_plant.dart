@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:plant_care_app/pages/bottom_nav.dart';
 import 'package:plant_care_app/pages/indi-plants/indi_plants.dart';
+import 'package:plant_care_app/services/notification_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'adopt_plant.dart';
 
@@ -287,7 +288,6 @@ class _MyPlantsScreenState extends State<MyPlantsScreen> {
                   child: FutureBuilder<List<Plant>>(
                     future: fetchPlants(),
                     builder: (context, snapshot) {
-
                       // Display all plants, regardless of watering status
                       return ListView.separated(
                         scrollDirection: Axis.horizontal,
@@ -757,6 +757,72 @@ class _MyPlantsScreenState extends State<MyPlantsScreen> {
                     ),
                     child: Text(
                       'Select Photo',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onPrimary,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Sixth Section - Call Reminder Test Button
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                  width: 1,
+                ),
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    width: 70,
+                    height: 70,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primaryContainer,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.notifications_active,
+                      color: Theme.of(context).colorScheme.primary,
+                      size: 36,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Test Notification',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Send a test notification immediately',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: _sendTestNotification,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      minimumSize: const Size(double.infinity, 50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text(
+                      'Call Reminder',
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.onPrimary,
                         fontSize: 16,
@@ -1430,25 +1496,42 @@ class _MyPlantsScreenState extends State<MyPlantsScreen> {
   }
 
   void _showReminderTimeDialog(BuildContext context, Plant plant) {
-    // Initialize with the current time or existing reminder time if available
-    TimeOfDay initialTime = TimeOfDay.now();
+    // Get reminder time from NotificationService
+    String savedReminderTime = NotificationService.instance.getReminderTime(
+      plant.speciesName,
+    );
 
-    // If we already have a saved time for this plant, use it as initial time
-    if (_updatedReminderTimes.containsKey(plant.speciesName)) {
+    // Initialize with the saved reminder time or default to 7:00 AM
+    TimeOfDay initialTime;
+
+    if (savedReminderTime != NotificationService.defaultReminderTime) {
+      // Parse from the saved reminder time (format: "HH:MM")
+      final timeParts = savedReminderTime.split(':');
+      initialTime = TimeOfDay(
+        hour: int.parse(timeParts[0]),
+        minute: int.parse(timeParts[1]),
+      );
+    } else if (_updatedReminderTimes.containsKey(plant.speciesName)) {
+      // If we already have a temporarily updated time for this plant, use it
       final timeParts = _updatedReminderTimes[plant.speciesName]!.split(':');
-      if (timeParts.length >= 2) {
-        final hour = int.tryParse(timeParts[0]) ?? 0;
-        final minute = int.tryParse(timeParts[1]) ?? 0;
-        initialTime = TimeOfDay(hour: hour, minute: minute);
-      }
+      initialTime = TimeOfDay(
+        hour: int.parse(timeParts[0]),
+        minute: int.parse(timeParts[1]),
+      );
     } else if (plant.timeToWater != null && plant.timeToWater!.isNotEmpty) {
       // Use the plant's original timeToWater if available
       final timeParts = plant.timeToWater!.split(':');
       if (timeParts.length >= 2) {
-        final hour = int.tryParse(timeParts[0]) ?? 0;
+        final hour = int.tryParse(timeParts[0]) ?? 7;
         final minute = int.tryParse(timeParts[1]) ?? 0;
         initialTime = TimeOfDay(hour: hour, minute: minute);
+      } else {
+        // Default to 7 AM
+        initialTime = const TimeOfDay(hour: 7, minute: 0);
       }
+    } else {
+      // Default to 7 AM
+      initialTime = const TimeOfDay(hour: 7, minute: 0);
     }
 
     showDialog(
@@ -1558,17 +1641,47 @@ class _MyPlantsScreenState extends State<MyPlantsScreen> {
                     backgroundColor: Theme.of(context).colorScheme.primary,
                     foregroundColor: Theme.of(context).colorScheme.onPrimary,
                   ),
-                  onPressed: () {
-                    // Update the reminder time in the state
-                    this.setState(() {
-                      _updatedReminderTimes[plant.speciesName] =
-                          '${initialTime.hour}:${initialTime.minute.toString().padLeft(2, '0')}';
-                    });
-
-                    // Here you would typically update this in the database
-                    // updatePlantReminder(plant.id, initialTime);
-
+                  onPressed: () async {
+                    // First, close the dialog immediately before async operations
                     Navigator.of(context).pop();
+
+                    // Format the time as "yyyy-MM-dd HH:mm:ss"
+                    final now = DateTime.now();
+                    final selectedDateTime = DateTime(
+                      now.year,
+                      now.month,
+                      now.day,
+                      initialTime.hour,
+                      initialTime.minute,
+                    );
+                    final formattedTime =
+                        '${selectedDateTime.year}-${selectedDateTime.month.toString().padLeft(2, '0')}-${selectedDateTime.day.toString().padLeft(2, '0')} ${initialTime.hour.toString().padLeft(2, '0')}:${initialTime.minute.toString().padLeft(2, '0')}:00';
+
+                    // Update the reminder time in the local UI state
+                    this.setState(() {
+                      _updatedReminderTimes[plant.speciesName] = formattedTime;
+                    });
+                    print(formattedTime);
+                    await NotificationService.instance.sendNotification(
+                      plantName: plant.speciesName,
+                      reminderTime: formattedTime,
+                      waterFrequencyDays: plant.waterFrequencyDays ?? 15,
+                    );
+
+                    // Show a confirmation toast or snackbar
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Reminder set for ${plant.speciesName} at ${_formatTimeString(formattedTime)}',
+                          ),
+                          backgroundColor:
+                              Theme.of(context).colorScheme.primary,
+                          behavior: SnackBarBehavior.floating,
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    }
                   },
                   child: const Text('Set Reminder'),
                 ),
@@ -1581,14 +1694,24 @@ class _MyPlantsScreenState extends State<MyPlantsScreen> {
   }
 
   String _formatTimeString(String timeString) {
-    final timeParts = timeString.split(':');
-    if (timeParts.length >= 2) {
-      final hour = int.tryParse(timeParts[0]) ?? 0;
-      final minute = int.tryParse(timeParts[1]) ?? 0;
-      final period = hour < 12 ? 'AM' : 'PM';
-      final displayHour = hour % 12 == 0 ? 12 : hour % 12;
-      return '$displayHour:${minute.toString().padLeft(2, '0')} $period';
+    final timeParts = timeString.split(' ');
+    if (timeParts.length == 2) {
+      final datePart = timeParts[0];
+      final timePart = timeParts[1];
+      final timeComponents = timePart.split(':');
+      if (timeComponents.length >= 2) {
+        final hour = int.tryParse(timeComponents[0]) ?? 0;
+        final minute = int.tryParse(timeComponents[1]) ?? 0;
+        final period = hour < 12 ? 'AM' : 'PM';
+        final displayHour = hour % 12 == 0 ? 12 : hour % 12;
+        return '$datePart $displayHour:${minute.toString().padLeft(2, '0')} $period';
+      }
     }
     return timeString;
+  }
+
+  void _sendTestNotification() {
+    print("Notification sent!");
+    NotificationService.instance.sendTestNotification();
   }
 }
