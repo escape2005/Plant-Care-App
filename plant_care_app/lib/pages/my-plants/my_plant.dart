@@ -1,11 +1,13 @@
-// ignore_for_file: deprecated_member_use
-
 import 'package:flutter/material.dart';
 import 'package:plant_care_app/pages/bottom_nav.dart';
 import 'package:plant_care_app/pages/indi-plants/indi_plants.dart';
+import 'package:plant_care_app/pages/my-plants/date_time_selector.dart';
 import 'package:plant_care_app/services/notification_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'adopt_plant.dart';
+
+DateTime selectedDate = DateTime.now();
+TimeOfDay selectedTime = TimeOfDay.now();
 
 final bottomNav = const BottomNavScreen();
 
@@ -1504,6 +1506,56 @@ class _MyPlantsScreenState extends State<MyPlantsScreen> {
     // Initialize with the saved reminder time or default to 7:00 AM
     TimeOfDay initialTime;
 
+    Future<void> _scheduleNotification() async {
+      final DateTime scheduledDateTime = DateTime(
+        selectedDate.year,
+        selectedDate.month,
+        selectedDate.day,
+        selectedTime.hour,
+        selectedTime.minute,
+      );
+
+      // check if selected time is in the past
+      if (scheduledDateTime.isBefore(DateTime.now())) {
+        // Show a warning message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Please select a time in the future.'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+        return;
+      }
+
+      await NotificationService.instance.scheduleNotification(
+        plantName: plant.speciesName,
+        scheduledDateTime: scheduledDateTime,
+        waterFrequencyDays: plant.waterFrequencyDays ?? 15,
+      );
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Reminder set for ${plant.speciesName} at $scheduledDateTime',
+            ),
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    }
+
+    void _updateDateTime(DateTime date, TimeOfDay time) {
+      setState(() {
+        selectedDate = date;
+        selectedTime = time;
+      });
+    }
+
     if (savedReminderTime != NotificationService.defaultReminderTime) {
       // Parse from the saved reminder time (format: "HH:MM")
       final timeParts = savedReminderTime.split(':');
@@ -1556,72 +1608,14 @@ class _MyPlantsScreenState extends State<MyPlantsScreen> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 20),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.surfaceVariant.withOpacity(0.3),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 15,
-                      horizontal: 8,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.access_time,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                        const SizedBox(width: 10),
-                        Text(
-                          '${initialTime.hourOfPeriod}:${initialTime.minute.toString().padLeft(2, '0')} ${initialTime.period == DayPeriod.am ? 'AM' : 'PM'}',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w500,
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton.icon(
-                    icon: const Icon(Icons.edit_calendar),
-                    label: const Text('Change Time'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).colorScheme.primary,
-                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                      minimumSize: const Size(double.infinity, 45),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    onPressed: () async {
-                      final TimeOfDay? pickedTime = await showTimePicker(
-                        context: context,
-                        initialTime: initialTime,
-                        builder: (context, child) {
-                          return Theme(
-                            data: Theme.of(context).copyWith(
-                              timePickerTheme: TimePickerThemeData(
-                                backgroundColor:
-                                    Theme.of(context).colorScheme.surface,
-                              ),
-                            ),
-                            child: child!,
-                          );
-                        },
-                      );
-
-                      if (pickedTime != null) {
-                        setState(() {
-                          initialTime = pickedTime;
-                        });
-                      }
+                  DateTimeSelector(
+                    selectedDate: selectedDate,
+                    selectedTime: initialTime,
+                    onDateTimeChanged: (selectedDate, selectedTime) {
+                      _updateDateTime(selectedDate, selectedTime);
                     },
-                  ),
+                  ),  
+                  const SizedBox(height: 20),
                 ],
               ),
               actions: [
@@ -1642,46 +1636,9 @@ class _MyPlantsScreenState extends State<MyPlantsScreen> {
                     foregroundColor: Theme.of(context).colorScheme.onPrimary,
                   ),
                   onPressed: () async {
+                    _scheduleNotification();
                     // First, close the dialog immediately before async operations
                     Navigator.of(context).pop();
-
-                    // Format the time as "yyyy-MM-dd HH:mm:ss"
-                    final now = DateTime.now();
-                    final selectedDateTime = DateTime(
-                      now.year,
-                      now.month,
-                      now.day,
-                      initialTime.hour,
-                      initialTime.minute,
-                    );
-                    final formattedTime =
-                        '${selectedDateTime.year}-${selectedDateTime.month.toString().padLeft(2, '0')}-${selectedDateTime.day.toString().padLeft(2, '0')} ${initialTime.hour.toString().padLeft(2, '0')}:${initialTime.minute.toString().padLeft(2, '0')}:00';
-
-                    // Update the reminder time in the local UI state
-                    this.setState(() {
-                      _updatedReminderTimes[plant.speciesName] = formattedTime;
-                    });
-                    print(formattedTime);
-                    await NotificationService.instance.sendNotification(
-                      plantName: plant.speciesName,
-                      reminderTime: formattedTime,
-                      waterFrequencyDays: plant.waterFrequencyDays ?? 15,
-                    );
-
-                    // Show a confirmation toast or snackbar
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Reminder set for ${plant.speciesName} at ${_formatTimeString(formattedTime)}',
-                          ),
-                          backgroundColor:
-                              Theme.of(context).colorScheme.primary,
-                          behavior: SnackBarBehavior.floating,
-                          duration: const Duration(seconds: 2),
-                        ),
-                      );
-                    }
                   },
                   child: const Text('Set Reminder'),
                 ),

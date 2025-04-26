@@ -5,8 +5,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
 class NotificationService {
-  static final NotificationService _instance = NotificationService._();
+  static final NotificationService _instance = NotificationService._internal();
   static NotificationService get instance => _instance;
+  NotificationService._internal();
 
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
@@ -16,8 +17,6 @@ class NotificationService {
 
   // Default time for reminders - 7:00 AM
   static const String defaultReminderTime = '07:00';
-
-  NotificationService._();
 
   Future<void> initialize() async {
     // Initialize notification settings for Android
@@ -49,7 +48,7 @@ class NotificationService {
   }
 
   void _onNotificationTapped(NotificationResponse response) {
-    // Handle notification tap - can navigate to specific plant page if needed
+    
     debugPrint('Notification tapped: ${response.payload}');
   }
 
@@ -96,7 +95,7 @@ class NotificationService {
           'test_notification_channel',
           'Test Notifications',
           channelDescription: 'Channel for testing notifications',
-          importance: Importance.high,
+          importance: Importance.max,
           priority: Priority.high,
           color: Colors.green,
         );
@@ -118,7 +117,7 @@ class NotificationService {
     // Show the notification immediately
     await _flutterLocalNotificationsPlugin.show(
       notificationId,
-      'Schedule Notification',
+      'Instant Notification',
       'This is a test plant care reminder notification!',
       notificationDetails,
       payload: jsonEncode({'test': 'notification'}),
@@ -127,89 +126,25 @@ class NotificationService {
     debugPrint('Test notification sent with ID: $notificationId');
   }
 
-  Future<void> sendNotification({
+
+
+  Future<void> scheduleNotification({
     required String plantName,
-    required String reminderTime,
+    required DateTime scheduledDateTime,
     required int waterFrequencyDays,
   }) async {
-    try {
-      debugPrint("Scheduling notification for $plantName at $reminderTime");
-
-      // Parse the reminderTime string (format: "yyyy-MM-dd HH:mm:ss")
-      DateTime parsedDateTime;
-      try {
-        parsedDateTime = DateTime.parse(reminderTime);
-        debugPrint("Successfully parsed date-time: $parsedDateTime");
-      } catch (e) {
-        // If parsing fails, extract time components manually
-        debugPrint("Error parsing date-time: $e");
-
-        // Split the string to extract components
-        List<String> parts = reminderTime.split(' ');
-        if (parts.length == 2) {
-          // Get date parts
-          List<String> dateParts = parts[0].split('-');
-          // Get time parts
-          List<String> timeParts = parts[1].split(':');
-
-          if (dateParts.length == 3 && timeParts.length >= 2) {
-            int year = int.parse(dateParts[0]);
-            int month = int.parse(dateParts[1]);
-            int day = int.parse(dateParts[2]);
-            int hour = int.parse(timeParts[0]);
-            int minute = int.parse(timeParts[1]);
-            int second = timeParts.length > 2 ? int.parse(timeParts[2]) : 0;
-
-            parsedDateTime = DateTime(year, month, day, hour, minute, second);
-            debugPrint("Manually parsed date-time: $parsedDateTime");
-          } else {
-            throw FormatException("Invalid date-time format: $reminderTime");
-          }
-        } else {
-          throw FormatException("Invalid date-time format: $reminderTime");
-        }
-      }
-
-      // Convert to TZDateTime
-      tz.TZDateTime scheduledDate = tz.TZDateTime(
-        tz.local,
-        parsedDateTime.year,
-        parsedDateTime.month,
-        parsedDateTime.day,
-        parsedDateTime.hour,
-        parsedDateTime.minute,
-        parsedDateTime.second,
-      );
-
-      // Format the scheduledDate as "yyyy-MM-dd HH:mm:ss" without timezone info
-      String formattedDate =
-          "${scheduledDate.year}-"
-          "${scheduledDate.month.toString().padLeft(2, '0')}-"
-          "${scheduledDate.day.toString().padLeft(2, '0')} "
-          "${scheduledDate.hour.toString().padLeft(2, '0')}:"
-          "${scheduledDate.minute.toString().padLeft(2, '0')}:"
-          "${scheduledDate.second.toString().padLeft(2, '0')}";
-
-      debugPrint("Converted to TZDateTime: $formattedDate");
-
-      // Create notification details
-      final AndroidNotificationDetails androidDetails =
+      const AndroidNotificationDetails androidDetails =
           AndroidNotificationDetails(
             'notification_channel',
             'Schedule Notifications',
             channelDescription: 'Channel for scheduling notifications',
-            importance: Importance.high,
+            importance: Importance.max,
             priority: Priority.high,
             color: Colors.green,
           );
 
-      final NotificationDetails notificationDetails = NotificationDetails(
-        android: androidDetails,
-        iOS: const DarwinNotificationDetails(
-          presentAlert: true,
-          presentBadge: true,
-          presentSound: true,
-        ),
+      const NotificationDetails notificationDetails = NotificationDetails(
+        android: androidDetails
       );
 
       // Generate a random ID for this notification
@@ -219,19 +154,15 @@ class NotificationService {
       // Schedule the notification
       await _flutterLocalNotificationsPlugin.zonedSchedule(
         notificationId,
-        'Time to water your $plantName!',
+        'Water your $plantName!',
         'Your plant needs water. Tap to mark as watered.',
-        scheduledDate,
+        tz.TZDateTime.from(scheduledDateTime, tz.local),
         notificationDetails,
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         matchDateTimeComponents: DateTimeComponents.time,
         payload: jsonEncode({'plantName': plantName}),
       );
 
-      debugPrint('Scheduled notification for $plantName at $formattedDate');
-    } catch (e) {
-      debugPrint("Failed to schedule notification: $e");
-      rethrow;
-    }
-  }
+      debugPrint('Scheduled notification for $plantName at $scheduledDateTime');
+    } 
 }
