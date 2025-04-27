@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'login.dart';
-
+import 'package:flutter_markdown/flutter_markdown.dart'; // Import flutter_markdown
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -18,9 +18,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
+  bool _isLoading = false;
 
-  signUpUser() async {
-
+  Future<void> signUpUser() async {
     final name = _nameController.text.trim();
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
@@ -43,15 +43,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
       return;
     }
 
+    setState(() {
+      _isLoading = true;
+    });
+
     try {
       final AuthResponse response = await supabase.auth.signUp(
         email: email,
         password: password,
-        data: {
-          'full_name': name, // Save name in user metadata
-        },
-
-        // emailRedirectTo: 'io.supabase.flutterquickstart://login-callback/',
+        data: {'full_name': name},
       );
 
       if (response.user != null) {
@@ -63,10 +63,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ),
         );
 
-        Navigator.pushReplacementNamed(
-          context,
-          '/login',
-        ); // Navigate to login screen
+        Navigator.pushReplacementNamed(context, '/login');
       }
     } on AuthException catch (e) {
       ScaffoldMessenger.of(
@@ -78,20 +75,130 @@ class _SignUpScreenState extends State<SignUpScreen> {
           content: Text("Something went wrong! Please try again."),
         ),
       );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
+  }
+
+  Future<void> _showTermsAndPrivacy() async {
+    try {
+      // Fetch the terms and privacy policy from the 'legal_documents' table using ID (replace with actual ID)
+      final documentId = 1; // Use a dynamic ID based on your logic or page flow
+      final data =
+          await supabase
+              .from('legal_documents')
+              .select()
+              .eq('id', documentId)
+              .single();
+
+      print("Fetched data: $data"); // Debugging line to check fetched data
+
+      if (data != null) {
+        // Show the content in a dialog
+        showDialog(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      data['title'] ?? '',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green, // Green heading
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    MarkdownBody(
+                      // Render markdown content
+                      data: data['content'] ?? 'No content available',
+                      styleSheet: MarkdownStyleSheet(
+                        p: TextStyle(
+                          fontSize: 12,
+                        ), // Smaller text size for content
+                        h1: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green,
+                        ),
+                        h2: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green,
+                        ),
+                        h3: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green,
+                        ),
+                        h4: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green,
+                        ),
+                        h5: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green,
+                        ),
+                        h6: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Close the dialog
+                  },
+                  child: const Text('Close'),
+                ),
+              ],
+            );
+          },
+        );
+      } else {
+        print("No data found for the specified ID.");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("No legal documents found.")),
+        );
+      }
+    } catch (e) {
+      print("Error fetching data: $e"); // Debugging line for error
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Unable to load legal documents.")),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: AppBar(
-      //   leading: IconButton(
-      //     icon: const Icon(Icons.arrow_back, color: Colors.green),
-      //     onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
-      //   ),
-      //   backgroundColor: Colors.transparent,
-      //   elevation: 0,
-      // ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
         child: Column(
@@ -168,17 +275,42 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
-              onPressed: signUpUser,
-              child: const Text(
-                "Sign Up",
-                style: TextStyle(color: Colors.white, fontSize: 16),
-              ),
+              onPressed: _isLoading ? null : signUpUser,
+              child:
+                  _isLoading
+                      ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                      : const Text(
+                        "Sign Up",
+                        style: TextStyle(color: Colors.white, fontSize: 16),
+                      ),
             ),
             const SizedBox(height: 10),
-            const Text(
-              "By continuing, you agree to our Terms & Privacy Policy",
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 12, color: Colors.black54),
+            GestureDetector(
+              onTap: _showTermsAndPrivacy,
+              child: const Text(
+                "By continuing, you agree to our ",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 12, color: Colors.black54),
+              ),
+            ),
+            GestureDetector(
+              onTap: _showTermsAndPrivacy,
+              child: const Text(
+                "Terms & Privacy Policy",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.green,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
             ),
             const SizedBox(height: 20),
             _buildBackToLogin(context),
@@ -188,12 +320,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
       ),
     );
   }
-}
-Widget _buildBackToLogin(BuildContext context) {
-  return TextButton(
-    onPressed: () {
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LoginScreen()));
-    },
-    child: const Text("Back to Login Page", style: TextStyle(color: Colors.green, fontSize: 16)),
-  );
+
+  Widget _buildBackToLogin(BuildContext context) {
+    return TextButton(
+      onPressed: () {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
+        );
+      },
+      child: const Text(
+        "Back to Login Page",
+        style: TextStyle(color: Colors.green, fontSize: 16),
+      ),
+    );
+  }
 }

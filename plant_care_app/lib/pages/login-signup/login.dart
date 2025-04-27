@@ -218,11 +218,6 @@ class _LoginScreenState extends State<LoginScreen> {
               ],
             ),
             const SizedBox(height: 10),
-            const Text(
-              "By continuing, you agree to our Terms of Service and Privacy Policy",
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 12, color: Colors.black54),
-            ),
           ],
         ),
       ),
