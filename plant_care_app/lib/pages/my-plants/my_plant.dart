@@ -296,92 +296,82 @@ class _MyPlantsScreenState extends State<MyPlantsScreen> {
           ),
           // Third Section - Today's Plant Care
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Today's Plant Care",
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-                ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+         children: [
+          Text(
+         "Today's Plant Care",
+         style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+      ),
                 const SizedBox(height: 12),
-                SizedBox(
-                  height: 125,
-                  child: FutureBuilder<List<Plant>>(
-                    future: fetchPlants(),
-                    builder: (context, snapshot) {
+              SizedBox(
+                   height: 125,
+                   child: FutureBuilder<List<Plant>>(
+                   future: fetchPlants(),
+                     builder: (context, snapshot) {
                       // Display all plants, regardless of watering status
                       return ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: snapshot.data!.length,
-                        separatorBuilder:
-                            (context, index) => const SizedBox(width: 12),
-                        itemBuilder: (context, index) {
-                          final plant = snapshot.data![index];
+              scrollDirection: Axis.horizontal,
+              itemCount: snapshot.data!.length,
+              separatorBuilder: (context, index) => const SizedBox(width: 12),
+              itemBuilder: (context, index) {
+                final plant = snapshot.data![index];
                           // Format time_to_water for display
                           String displayTime = "Anytime";
-                          if (plant.timeToWater != null &&
-                              plant.timeToWater!.isNotEmpty) {
+                         if (plant.timeToWater != null && 
+                         plant.timeToWater!.isNotEmpty) {
                             // Parse time from time_to_water (expected format "10:00:00")
                             final timeParts = plant.timeToWater!.split(':');
-                            if (timeParts.length >= 2) {
-                              final hour = int.tryParse(timeParts[0]) ?? 0;
-                              final minute = int.tryParse(timeParts[1]) ?? 0;
-                              final period = hour < 12 ? 'AM' : 'PM';
-                              final displayHour =
-                                  hour % 12 == 0 ? 12 : hour % 12;
-                              displayTime =
-                                  '$displayHour:${minute.toString().padLeft(2, '0')} $period';
-                            }
-                          }
+                  if (timeParts.length >= 2) {
+                    final hour = int.tryParse(timeParts[0]) ?? 0;
+                    final minute = int.tryParse(timeParts[1]) ?? 0;
+                    final period = hour < 12 ? 'AM' : 'PM';
+                    final displayHour = hour % 12 == 0 ? 12 : hour % 12;
+                    displayTime = '$displayHour:${minute.toString().padLeft(2, '0')} $period';
+                  }
+                }
 
                           // Check if plant needs watering
                           final today = DateTime.now();
-                          bool needsWatering = true;
-                          if (plant.lastWateredDate != null) {
-                            final daysSinceWatered =
-                                today.difference(plant.lastWateredDate!).inDays;
-                            final waterFrequency =
-                                plant.waterFrequencyDays ?? 15;
-                            needsWatering = daysSinceWatered >= waterFrequency;
-                          }
+                bool needsWatering = true;
+                if (plant.lastWateredDate != null) {
+                  final daysSinceWatered = today.difference(plant.lastWateredDate!).inDays;
+                  final waterFrequency = plant.waterFrequencyDays ?? 15;
+                  needsWatering = daysSinceWatered >= waterFrequency;
+                }
 
-                          return GestureDetector(
-                            onTap: () {
-                              _showReminderTimeDialog(context, plant);
-                            },
-                            child: _buildCareReminderCard(
-                              context: context,
-                              icon: Icons.water_drop,
-                              title:
-                                  needsWatering
-                                      ? 'Water ${plant.speciesName}'
-                                      : '${plant.speciesName} watered',
-                              time:
-                                  _updatedReminderTimes.containsKey(
-                                        plant.speciesName,
-                                      )
-                                      ? _formatTimeString(
-                                        _updatedReminderTimes[plant
-                                            .speciesName]!,
-                                      )
-                                      : displayTime,
-                              color:
-                                  needsWatering
-                                      ? Theme.of(context).colorScheme.primary
-                                      : Colors.green,
-                            ),
-                          );
-                        },
-                      );
-                    },
+                return GestureDetector(
+                  onTap: () {
+                    _showReminderTimeDialog(context, plant);
+                  },
+                  child: _buildCareReminderCard(
+                    context: context,
+                    icon: Icons.water_drop,
+                    iconColor: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.green[400]! // Light green for dark mode
+                        : Colors.green[600]!,  // Dark green for light mode
+                    title: needsWatering
+                        ? 'Water ${plant.speciesName}'
+                        : '${plant.speciesName} watered',
+                    time: _updatedReminderTimes.containsKey(plant.speciesName)
+                        ? _formatTimeString(_updatedReminderTimes[plant.speciesName]!)
+                        : displayTime,
+                    color: needsWatering
+                        ? Theme.of(context).colorScheme.primary
+                        : Colors.green,
                   ),
-                ),
-              ],
-            ),
-          ),
+                );
+              },
+            );
+          },
+        ),
+      ),
+    ],
+  ),
+),
           const SizedBox(height: 16),
           // Fourth Section - All Plants
           Padding(
@@ -444,115 +434,104 @@ class _MyPlantsScreenState extends State<MyPlantsScreen> {
                         children: [
                           // Total Plants
                           Expanded(
-                            child: Container(
-                              height: 120,
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.surface,
-                                borderRadius: BorderRadius.circular(12),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Theme.of(context).shadowColor,
-                                    spreadRadius: 0.1,
-                                    blurRadius: 3,
-                                    offset: const Offset(0, 1),
-                                  ),
-                                ],
-                              ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.eco,
-                                    color:
-                                        Theme.of(context).colorScheme.primary,
-                                    size: 24,
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    '$totalPlants',
-                                    style: TextStyle(
-                                      color:
-                                          Theme.of(
-                                            context,
-                                          ).colorScheme.onSurface,
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  Text(
-                                    'Total Plants',
-                                    style: TextStyle(
-                                      color:
-                                          Theme.of(
-                                            context,
-                                          ).colorScheme.onSurfaceVariant,
-                                      fontSize: 11,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                          child: Container(
+                          height: 120,
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surface,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                          BoxShadow(
+                          color: Theme.of(context).shadowColor,
+                            spreadRadius: 0.1,
+                              blurRadius: 3,
+                            offset: const Offset(0, 1),
                             ),
-                          ),
-
+                         ],
+                      ),
+              child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+               Icon(
+               Icons.eco,
+              color: Colors.green, // Fixed green color
+                 size: 24,
+              ),
+               const SizedBox(height: 8),
+        Text(
+          '$totalPlants',
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Text(
+          'Total Plants',
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            fontSize: 11,
+          ),
+        ),
+      ],
+    ),
+  ),
+),
                           const SizedBox(width: 8),
 
                           // Healthy
                           Expanded(
-                            child: Container(
-                              height: 120,
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color:
-                                    Theme.of(
-                                      context,
-                                    ).colorScheme.primaryContainer,
-                                borderRadius: BorderRadius.circular(12),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Theme.of(context).shadowColor,
-                                    spreadRadius: 0.1,
-                                    blurRadius: 3,
-                                    offset: const Offset(0, 1),
-                                  ),
-                                ],
-                              ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.check_circle_outline,
-                                    color:
-                                        Theme.of(context).colorScheme.primary,
-                                    size: 24,
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    '$healthyPlants',
-                                    style: TextStyle(
-                                      color:
-                                          Theme.of(
-                                            context,
-                                          ).colorScheme.onPrimaryContainer,
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  Text(
-                                    'Healthy',
-                                    style: TextStyle(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onPrimaryContainer
-                                          .withOpacity(0.7),
-                                      fontSize: 11,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-
+  child: Container(
+    height: 120,
+    padding: const EdgeInsets.all(12),
+    decoration: BoxDecoration(
+      color: Theme.of(context).brightness == Brightness.dark
+          ? Colors.green[900]  // Dark mode container
+          : Colors.green[100],  // Light mode container
+      borderRadius: BorderRadius.circular(12),
+      boxShadow: [
+        BoxShadow(
+          color: Theme.of(context).shadowColor,
+          spreadRadius: 0.1,
+          blurRadius: 3,
+          offset: const Offset(0, 1),
+        )
+      ],
+    ),
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(
+          Icons.check_circle_outline,
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.green[400]  // Light green for dark mode
+              : Colors.green[600],  // Dark green for light mode
+          size: 24,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          '$healthyPlants',
+          style: TextStyle(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.green[100]  // Light text for dark background
+                : Colors.green[800],  // Dark text for light background
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Text(
+          'Healthy',
+          style: TextStyle(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.green[100]!.withOpacity(0.7)
+                : Colors.green[800]!.withOpacity(0.7),
+            fontSize: 11,
+          ),
+        ),
+      ],
+    ),
+  ),
+),
                           const SizedBox(width: 8),
 
                           // Needs Care
@@ -729,68 +708,74 @@ class _MyPlantsScreenState extends State<MyPlantsScreen> {
 
           // Fifth Section - Add Plant Photo
           Padding(
-            padding: const EdgeInsets.all(16),
-            key: GlobalKey(debugLabel: 'photoUploadSection'), // Add this key
-            child: Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                children: [
-                  Container(
-                    width: 70,
-                    height: 70,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceVariant,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.cloud_upload_outlined,
-                      color: Theme.of(context).colorScheme.primary,
-                      size: 36,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Add your plant photo',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Share your plant with our NGO experts',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: () {
-                      // BACKEND: Handle photo upload
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).colorScheme.primary,
-                      minimumSize: const Size(double.infinity, 50),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: Text(
-                      'Select Photo',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onPrimary,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+  padding: const EdgeInsets.all(16),
+  key: GlobalKey(debugLabel: 'photoUploadSection'),
+  child: Container(
+    padding: const EdgeInsets.all(24),
+    decoration: BoxDecoration(
+      color: Theme.of(context).colorScheme.surface,
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Column(
+      children: [
+        Container(
+          width: 70,
+          height: 70,
+          decoration: BoxDecoration(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.green[900]  // Dark mode green
+                : Colors.green[100],  // Light mode green
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            Icons.cloud_upload_outlined,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.green[400]  // Light green for dark mode
+                : Colors.green[600],  // Dark green for light mode
+            size: 36,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Text(
+          'Add your plant photo',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Share your plant with our NGO experts',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 24),
+        ElevatedButton(
+          onPressed: () {
+            // BACKEND: Handle photo upload
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Theme.of(context).brightness == Brightness.dark
+                ? Colors.green[800]  // Dark mode button color
+                : Colors.green[600],  // Light mode button color
+            minimumSize: const Size(double.infinity, 50),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
             ),
           ),
+          child: Text(
+            'Select Photo',
+            style: TextStyle(
+              color: Colors.white,  // White text for better contrast
+              fontSize: 16,
+            ),
+          ),
+        ),
+      ],
+    ),
+  ),
+),
 
           // Sixth Section - Call Reminder Test Button
           // Padding(
@@ -1369,9 +1354,11 @@ class _MyPlantsScreenState extends State<MyPlantsScreen> {
   Widget _buildCareReminderCard({
     required BuildContext context,
     required IconData icon,
+    required Color iconColor,
     required String title,
     required String time,
     required Color color,
+
   }) {
     return Container(
       width: 200,
@@ -1384,7 +1371,7 @@ class _MyPlantsScreenState extends State<MyPlantsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: color),
+          Icon(icon, color:iconColor ),
           const SizedBox(height: 12),
           Text(
             title,
