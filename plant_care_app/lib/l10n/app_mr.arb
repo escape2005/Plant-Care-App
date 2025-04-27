@@ -11,7 +11,7 @@
   "profileEmail": "alkavishwakarma@example.com",
   "editProfile": "प्रोफाइल संपादित करा",
   "changePassword": "पासवर्ड बदला",
-  "deleteAccount": "खाते हटवा",
+  "logout": "बाहेर जा",
   "plantCareReminders": "वनस्पती काळजी स्मरणपत्रे",
   "wateringSchedule": "पाणी देण्याचे वेळापत्रक",
   "fertilizingAlerts": "खत चेतावणी",
@@ -43,5 +43,8 @@
   "email": "ईमेल",
   "location": "स्थान",
   "saveChanges": "बदल जतन करा",
-  "profileUpdated": "प्रोफाईल यशस्वीरित्या अद्यतनित करण्यात आली"
+  "profileUpdated": "प्रोफाईल यशस्वीरित्या अद्यतनित करण्यात आली",
+  "confirmLogout": "लॉगआउटची पुष्टी करा",
+  "logoutConfirmation": "आपण खरोखर लॉगआउट करू इच्छिता?",
+  "cancel": "रद्द करा"
 }

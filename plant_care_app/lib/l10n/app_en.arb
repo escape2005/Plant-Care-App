@@ -44,7 +44,7 @@
   "@editProfile": {"description": "Edit profile option label"},
   "changePassword": "Change Password",
   "@changePassword": {"description": "Change password option label"},
-  "deleteAccount": "Delete Account",
+  "logout": "Logout",
   "@deleteAccount": {"description": "Delete account option label"},
 
 
@@ -109,7 +109,14 @@
   "profileUpdated": "Profile updated successfully",
   "@profileUpdated": {
     "description": "Success message after profile update"
-  }
+  },
+
+  "confirmLogout": "Confirm Logout",
+  "logoutConfirmation": "Are you sure you want to log out?",
+  "cancel": "Cancel"
+
+
+
 
   
 }
