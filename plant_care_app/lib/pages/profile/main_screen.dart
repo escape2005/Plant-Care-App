@@ -41,7 +41,7 @@ class _MainScreenState extends State<MainScreen> {
     _loadUserData(); // Add this initialization
   }
 
-  // Add this new method
+  // Modified to fetch plant_care_remainder from user_details
   Future<void> _loadUserData() async {
     try {
       final user = Supabase.instance.client.auth.currentUser;
@@ -49,13 +49,16 @@ class _MainScreenState extends State<MainScreen> {
         final response =
             await Supabase.instance.client
                 .from('user_details')
-                .select()
+                .select('user_email, user_name, plant_care_remainder')
                 .eq('id', user.id)
                 .single();
 
         setState(() {
           _userEmail = response['user_email'] ?? '';
           _userName = response['user_name'] ?? '';
+          _plantCareEnabled =
+              response['plant_care_remainder'] ??
+              true; // Get the plant_care_remainder value
           _isLoading = false;
         });
       }
@@ -169,135 +172,138 @@ class _MainScreenState extends State<MainScreen> {
   // _buildPrivacySection, _buildHelpnSupporttSection,
   // _buildadditionalsetting, etc.
 
- Widget _buildAccountSection(BuildContext context) {
-  final options = [
-    {
-      'icon': Icons.person,
-      'title': AppLocalizations.of(context)!.editProfile,
-      'page': const EditProfilePage(),
-    },
-    {
-      'icon': Icons.lock,
-      'title': AppLocalizations.of(context)!.changePassword,
-      'page': const ChangePasswordPage(),
-    },
-    {
-      'icon': Icons.logout,
-      'title': AppLocalizations.of(context)!.logout,
-      'page': null,
-      'isLogout': true, // Add this flag
-    },
-  ];
+  Widget _buildAccountSection(BuildContext context) {
+    final options = [
+      {
+        'icon': Icons.person,
+        'title': AppLocalizations.of(context)!.editProfile,
+        'page': const EditProfilePage(),
+      },
+      {
+        'icon': Icons.lock,
+        'title': AppLocalizations.of(context)!.changePassword,
+        'page': const ChangePasswordPage(),
+      },
+      {
+        'icon': Icons.logout,
+        'title': AppLocalizations.of(context)!.logout,
+        'page': null,
+        'isLogout': true, // Add this flag
+      },
+    ];
 
-  return Column(
-    children: [
-      ...options.map(
-        (option) => Container(
-          margin: const EdgeInsets.only(bottom: 16),
-          decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: const Color.fromARGB(255, 213, 213, 213),
-                spreadRadius: 2,
-                blurRadius: 8,
-              ),
-            ],
-          ),
-          child: ListTile(
-            leading: Icon(
-              option['icon'] as IconData,
-              color: Theme.of(context).iconTheme.color,
+    return Column(
+      children: [
+        ...options.map(
+          (option) => Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color.fromARGB(255, 213, 213, 213),
+                  spreadRadius: 2,
+                  blurRadius: 8,
+                ),
+              ],
             ),
-            title: Text(
-              option['title'] as String,
-              style: TextStyle(
-                color: Theme.of(context).textTheme.bodyLarge?.color,
+            child: ListTile(
+              leading: Icon(
+                option['icon'] as IconData,
+                color: Theme.of(context).iconTheme.color,
               ),
+              title: Text(
+                option['title'] as String,
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                ),
+              ),
+              trailing:
+                  option['isLogout'] == true
+                      ? null // Remove trailing icon for logout
+                      : Icon(
+                        Icons.chevron_right,
+                        color: Theme.of(context).iconTheme.color,
+                      ),
+              onTap: () {
+                if (option['page'] != null) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => option['page'] as Widget,
+                    ),
+                  );
+                } else if (option['isLogout'] == true) {
+                  // Add logout logic here
+                  _showLogoutConfirmationDialog(context);
+                }
+              },
             ),
-            trailing: option['isLogout'] == true 
-                ? null // Remove trailing icon for logout
-                : Icon(
-                    Icons.chevron_right,
-                    color: Theme.of(context).iconTheme.color,
-                  ),
-            onTap: () {
-              if (option['page'] != null) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => option['page'] as Widget,
-                  ),
-                );
-              } else if (option['isLogout'] == true) {
-                // Add logout logic here
-                _showLogoutConfirmationDialog(context);
-              }
-            },
-          ),
-        ),
-      ),
-    ],
-  );
-}
-
-// Add this in your profile screen widget (where _buildAccountSection is defined)
-void _performLogout(BuildContext context) async {
-  try {
-    // Sign out from Supabase
-    await Supabase.instance.client.auth.signOut();
-
-    // Optional: Clear any local storage if you're using it
-    // final prefs = await SharedPreferences.getInstance();
-    // await prefs.clear();
-
-    // Navigate to login screen
-    if (mounted) {
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
-        (Route<dynamic> route) => false,
-      );
-    }
-  } catch (e) {
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Error during logout'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-    print('Logout error: $e');
-  }
-}
-
-void _showLogoutConfirmationDialog(BuildContext context) {
-  showDialog(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: Text(AppLocalizations.of(context)!.confirmLogout),
-      content: Text(AppLocalizations.of(context)!.logoutConfirmation),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text(AppLocalizations.of(context)!.cancel),
-        ),
-        TextButton(
-          onPressed: () {
-            Navigator.pop(context);
-            _performLogout(context);
-          },
-          child: Text(
-            AppLocalizations.of(context)!.logout,
-            style: const TextStyle(color: Colors.red),
           ),
         ),
       ],
-    ),
-  );
-}
+    );
+  }
+
+  // Add this in your profile screen widget (where _buildAccountSection is defined)
+  void _performLogout(BuildContext context) async {
+    try {
+      // Sign out from Supabase
+      await Supabase.instance.client.auth.signOut();
+
+      // Optional: Clear any local storage if you're using it
+      // final prefs = await SharedPreferences.getInstance();
+      // await prefs.clear();
+
+      // Navigate to login screen
+      if (mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
+          (Route<dynamic> route) => false,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Error during logout'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      print('Logout error: $e');
+    }
+  }
+
+  void _showLogoutConfirmationDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Text(AppLocalizations.of(context)!.confirmLogout),
+            content: Text(AppLocalizations.of(context)!.logoutConfirmation),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(AppLocalizations.of(context)!.cancel),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _performLogout(context);
+                },
+                child: Text(
+                  AppLocalizations.of(context)!.logout,
+                  style: const TextStyle(color: Colors.red),
+                ),
+              ),
+            ],
+          ),
+    );
+  }
+
   Widget _buildNotificationsSection() {
     final notificationOptions = [
       {
@@ -399,6 +405,9 @@ void _showLogoutConfirmationDialog(BuildContext context) {
       // Using a mapping approach instead of switch case with incorrect Key variable
       if (title == AppLocalizations.of(context)!.plantCareReminders) {
         _plantCareEnabled = value;
+
+        // Update the plant_care_remainder value in the database
+        _updatePlantCareRemainderSetting(value);
       } else if (title == AppLocalizations.of(context)!.wateringSchedule) {
         _wateringEnabled = value;
       } else if (title == AppLocalizations.of(context)!.fertilizingAlerts) {
@@ -407,6 +416,34 @@ void _showLogoutConfirmationDialog(BuildContext context) {
         _communityUpdatesEnabled = value;
       }
     });
+  }
+
+  // Add a method to update plant_care_remainder in the database
+  Future<void> _updatePlantCareRemainderSetting(bool value) async {
+    try {
+      final user = Supabase.instance.client.auth.currentUser;
+
+      if (user != null) {
+        // Update the plant_care_remainder column in user_details table
+        await Supabase.instance.client
+            .from('user_details')
+            .update({'plant_care_remainder': value})
+            .eq('id', user.id);
+
+        print('Updated plant_care_remainder setting to: $value');
+      }
+    } catch (e) {
+      print('Error updating plant_care_remainder setting: $e');
+      // Show an error message if the update fails
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to update notification settings'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    }
   }
 
   Widget _buildPrivacySection() {

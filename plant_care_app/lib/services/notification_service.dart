@@ -48,7 +48,6 @@ class NotificationService {
   }
 
   void _onNotificationTapped(NotificationResponse response) {
-    
     debugPrint('Notification tapped: ${response.payload}');
   }
 
@@ -67,7 +66,22 @@ class NotificationService {
   String getReminderTime(String plantName) {
     return _plantReminderTimes[plantName] ?? defaultReminderTime;
   }
-  
+
+  // Save a reminder time for a specific plant
+  Future<void> saveReminderTime(String plantName, String reminderTime) async {
+    // Save to in-memory map
+    _plantReminderTimes[plantName] = reminderTime;
+
+    // Save to persistent storage
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      'plant_reminder_times',
+      jsonEncode(_plantReminderTimes),
+    );
+
+    debugPrint('Saved reminder time for $plantName: $reminderTime');
+  }
+
   Future<void> _loadReminderTimes() async {
     final prefs = await SharedPreferences.getInstance();
     final String? reminderTimesJson = prefs.getString('plant_reminder_times');
@@ -126,43 +140,42 @@ class NotificationService {
     debugPrint('Test notification sent with ID: $notificationId');
   }
 
-
-
   Future<void> scheduleNotification({
     required String plantName,
     required DateTime scheduledDateTime,
     required int waterFrequencyDays,
   }) async {
-      const AndroidNotificationDetails androidDetails =
-          AndroidNotificationDetails(
-            'notification_channel',
-            'Schedule Notifications',
-            channelDescription: 'Channel for scheduling notifications',
-            importance: Importance.max,
-            priority: Priority.high,
-            color: Colors.green,
-          );
+    const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+          'notification_channel',
+          'Schedule Notifications',
+          channelDescription: 'Channel for scheduling notifications',
+          importance: Importance.max,
+          priority: Priority.high,
+          color: Colors.green,
+        );
 
-      const NotificationDetails notificationDetails = NotificationDetails(
-        android: androidDetails
-      );
+    const NotificationDetails notificationDetails = NotificationDetails(
+      android: androidDetails,
+    );
 
-      // Generate a random ID for this notification
-      final int notificationId = DateTime.now().millisecondsSinceEpoch
-          .remainder(100000);
+    // Generate a random ID for this notification
+    final int notificationId = DateTime.now().millisecondsSinceEpoch.remainder(
+      100000,
+    );
 
-      // Schedule the notification
-      await _flutterLocalNotificationsPlugin.zonedSchedule(
-        notificationId,
-        'Water your $plantName!',
-        'Your plant needs water. Tap to mark as watered.',
-        tz.TZDateTime.from(scheduledDateTime, tz.local),
-        notificationDetails,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        matchDateTimeComponents: DateTimeComponents.time,
-        payload: jsonEncode({'plantName': plantName}),
-      );
+    // Schedule the notification
+    await _flutterLocalNotificationsPlugin.zonedSchedule(
+      notificationId,
+      'Water your $plantName!',
+      'Your plant needs water. Tap to mark as watered.',
+      tz.TZDateTime.from(scheduledDateTime, tz.local),
+      notificationDetails,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      matchDateTimeComponents: DateTimeComponents.time,
+      payload: jsonEncode({'plantName': plantName}),
+    );
 
-      debugPrint('Scheduled notification for $plantName at $scheduledDateTime');
-    } 
+    debugPrint('Scheduled notification for $plantName at $scheduledDateTime');
+  }
 }

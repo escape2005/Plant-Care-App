@@ -40,16 +40,16 @@ class DateTimeSelector extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Expanded(
-          child: OutlinedButton.icon(
-            onPressed: () => _selectDate(context),
-            icon: const Icon(Icons.calendar_today),
-            label: Text(
-              'Date: ${selectedDate.toLocal().toString().split(" ")[0]}',
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
+        // Expanded(
+        //   child: OutlinedButton.icon(
+        //     onPressed: () => _selectDate(context),
+        //     icon: const Icon(Icons.calendar_today),
+        //     label: Text(
+        //       'Date: ${selectedDate.toLocal().toString().split(" ")[0]}',
+        //     ),
+        //   ),
+        // ),
+        // const SizedBox(width: 12),
         Expanded(child: OutlinedButton.icon(
           onPressed: () => _selectTime(context),
           icon: const Icon(Icons.access_time),

@@ -20,11 +20,16 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
   late int _selectedIndex;
   int _unreadNotificationCount = 0;
   bool _isLoadingNotifications = true;
+  int _previousIndex = -1; // Keep track of the previous index
+
+  // Reference to keep track of the MyPlantsScreen
+  final GlobalKey<MyPlantsScreenState> _myPlantsKey = GlobalKey();
 
   @override
   void initState() {
     super.initState();
     _selectedIndex = widget.index ?? 0;
+    _previousIndex = _selectedIndex;
     _fetchUnreadNotificationCount();
   }
 
@@ -49,9 +54,7 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
       // Query to count notifications where is_read is false
       final response = await supabase
           .from('notifications')
-          .select(
-            '*',
-          ) // Select all columns but we only need the count
+          .select('*') // Select all columns but we only need the count
           .eq('user_id', user.id)
           .eq('is_read', false);
 
@@ -73,15 +76,28 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
     }
   }
 
-  final List<Widget> _pages = [
-    const MyPlantsScreen(),
+  // List of pages with the MyPlantsScreen using the key
+  List<Widget> get _pages => [
+    MyPlantsScreen(key: _myPlantsKey),
     const GuidesPage(),
     const CommunityScreen(),
     const MainScreen(),
   ];
 
   void _onItemTapped(int index) {
+    // If we're switching to the MyPlants tab from another tab
+    if (index == 0 && _selectedIndex != 0) {
+      // Refresh MyPlantsScreen when we navigate to it
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (_myPlantsKey.currentState != null) {
+          _myPlantsKey.currentState!.refreshState();
+          print('Refreshing MyPlantsScreen state');
+        }
+      });
+    }
+
     setState(() {
+      _previousIndex = _selectedIndex;
       _selectedIndex = index;
     });
   }
@@ -99,7 +115,9 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
         iconTheme: const IconThemeData(color: Colors.green),
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 8.0), // Reduced right padding to shift left
+            padding: const EdgeInsets.only(
+              right: 8.0,
+            ), // Reduced right padding to shift left
             child: Stack(
               children: [
                 IconButton(
