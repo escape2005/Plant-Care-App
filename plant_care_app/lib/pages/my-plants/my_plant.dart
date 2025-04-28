@@ -36,6 +36,7 @@ class Plant {
   final String? plantId;
   final String? adoptionId; // Added to store the adoption record ID
   String? alarmTiming; // Added to store the alarm timing from adoption_record
+  bool? isVerified; // Added to store the verification status
 
   Plant({
     required this.speciesName,
@@ -51,6 +52,7 @@ class Plant {
     this.plantId,
     this.adoptionId,
     this.alarmTiming,
+    this.isVerified,
   });
 
   factory Plant.fromMap(Map<String, dynamic> map) {
@@ -77,13 +79,14 @@ Future<List<Plant>> fetchPlants() async {
     throw Exception('User not authenticated');
   }
 
-  // Get adoption records with alarm_timing field
+  // Get adoption records with alarm_timing field and is_verified
   final response = await supabase
       .from('adoption_record')
       .select('''
       adoption_id,
       plant_id,
       alarm_timing,
+      is_verified,
       plant_catalog (
         species_name,
         scientific_name,
@@ -99,8 +102,13 @@ Future<List<Plant>> fetchPlants() async {
 
   print('Fetched ${response.length} adoption records');
 
+  // Filter to only include verified plants
+  final verifiedRecords = (response as List).where((data) => data['is_verified'] == true).toList();
+  
+  print('After filtering, ${verifiedRecords.length} verified plants found');
+
   List<Plant> plants =
-      (response as List).map((data) {
+      verifiedRecords.map((data) {
         final plantData = data['plant_catalog'] as Map<String, dynamic>;
 
         // Debug print to see what data is coming from the database
@@ -123,6 +131,7 @@ Future<List<Plant>> fetchPlants() async {
           plantId: data['plant_id'],
           adoptionId: data['adoption_id'],
           alarmTiming: data['alarm_timing'],
+          isVerified: data['is_verified'] ?? false, // Add this field to your Plant model if needed
         );
       }).toList();
 
@@ -131,7 +140,7 @@ Future<List<Plant>> fetchPlants() async {
     try {
       // Find the adoption_id for this plant - FIX HERE
       final adoptionDataList =
-          (response as List)
+          verifiedRecords
               .where(
                 (data) =>
                     data['plant_catalog'] != null &&

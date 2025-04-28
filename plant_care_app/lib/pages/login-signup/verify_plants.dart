@@ -21,18 +21,18 @@ class _VerifyPlantsState extends State<VerifyPlants> {
     _fetchUserInfo();
   }
 
-Future<void> _fetchUserInfo() async {
-  final supabase = Supabase.instance.client;
-  final user = supabase.auth.currentUser;
-  
-  if (user != null) {
-    setState(() {
-      // The user data comes directly from the auth.currentUser object
-      _userName = user.userMetadata?['full_name'] ?? '';
-      _userEmail = user.email ?? '';
-    });
+  Future<void> _fetchUserInfo() async {
+    final supabase = Supabase.instance.client;
+    final user = supabase.auth.currentUser;
+
+    if (user != null) {
+      setState(() {
+        // The user data comes directly from the auth.currentUser object
+        _userName = user.userMetadata?['full_name'] ?? '';
+        _userEmail = user.email ?? '';
+      });
+    }
   }
-}
 
   Future<List<Map<String, dynamic>>> _fetchAdoptedPlantsToVerify() async {
     final supabase = Supabase.instance.client;
@@ -45,16 +45,17 @@ Future<void> _fetchUserInfo() async {
     final response = await supabase
         .from('adoption_record')
         .select('''
-          plant_id,
-          adoption_date,
-          is_verified,
-          plant_catalog (
-            species_name,
-            scientific_name,
-            care_difficulty,
-            image_url
-          )
-        ''')
+        adoption_id,
+        plant_id,
+        adoption_date,
+        is_verified,
+        plant_catalog (
+          species_name,
+          scientific_name,
+          care_difficulty,
+          image_url
+        )
+      ''')
         .eq('user_id', user.id)
         .eq('is_verified', false);
 
@@ -76,7 +77,7 @@ Future<void> _fetchUserInfo() async {
           .update({'is_verified': true})
           .eq('user_id', user.id)
           .eq('is_verified', false);
-      
+
       Navigator.pushReplacementNamed(context, '/home');
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -156,11 +157,9 @@ Future<void> _fetchUserInfo() async {
                   future: _adoptedPlantsFuture,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(
-                        child: CircularProgressIndicator(),
-                      );
+                      return const Center(child: CircularProgressIndicator());
                     }
-                    
+
                     if (snapshot.hasError) {
                       return Center(
                         child: Text(
@@ -169,7 +168,7 @@ Future<void> _fetchUserInfo() async {
                         ),
                       );
                     }
-                    
+
                     if (!snapshot.hasData || snapshot.data!.isEmpty) {
                       return const Center(
                         child: Text(
@@ -178,24 +177,35 @@ Future<void> _fetchUserInfo() async {
                         ),
                       );
                     }
-                    
+
                     return Column(
-                      children: snapshot.data!.map((plant) {
-                        final plantCatalog = plant['plant_catalog'] as Map<String, dynamic>;
-                        
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 16),
-                          child: _buildPlantCard(
-                            context,
-                            species: plantCatalog['species_name'] ?? 'Unknown Species',
-                            scientific: plantCatalog['scientific_name'] ?? 'Unknown Scientific Name',
-                            image: plantCatalog['image_url'] ?? '',
-                            adoptionDate: plant['adoption_date'] ?? 'Unknown',
-                            careDifficulty: plantCatalog['care_difficulty'] ?? 'Unknown',
-                            plantId: plant['id'],
-                          ),
-                        );
-                      }).toList(),
+                      children:
+                          snapshot.data!.map((plant) {
+                            final plantCatalog =
+                                plant['plant_catalog'] as Map<String, dynamic>;
+
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 16),
+                              child: _buildPlantCard(
+                                context,
+                                species:
+                                    plantCatalog['species_name'] ??
+                                    'Unknown Species',
+                                scientific:
+                                    plantCatalog['scientific_name'] ??
+                                    'Unknown Scientific Name',
+                                image: plantCatalog['image_url'] ?? '',
+                                adoptionDate:
+                                    plant['adoption_date'] ?? 'Unknown',
+                                careDifficulty:
+                                    plantCatalog['care_difficulty'] ??
+                                    'Unknown',
+                                plantId: plant['plant_id'],
+                                adoptionId:
+                                    plant['adoption_id'], // Add this line to pass the adoption_id
+                              ),
+                            );
+                          }).toList(),
                     );
                   },
                 ),
@@ -244,7 +254,6 @@ Future<void> _fetchUserInfo() async {
                 //     style: TextStyle(color: Colors.red, fontSize: 16),
                 //   ),
                 // ),
-
                 const SizedBox(height: 12),
 
                 const Text(
@@ -291,6 +300,7 @@ Future<void> _fetchUserInfo() async {
     required String adoptionDate,
     required String careDifficulty,
     required dynamic plantId,
+    required String adoptionId, // Add this parameter
   }) {
     // Format adoption date
     String formattedDate = adoptionDate;
@@ -318,31 +328,36 @@ Future<void> _fetchUserInfo() async {
         children: [
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-            child: image.isNotEmpty
-                ? Image.network(
-                    image,
-                    width: double.infinity,
-                    height: 200,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        width: double.infinity,
-                        height: 200,
-                        color: Colors.grey[300],
-                        child: const Center(
-                          child: Icon(Icons.error, size: 40, color: Colors.grey),
-                        ),
-                      );
-                    },
-                  )
-                : Container(
-                    width: double.infinity,
-                    height: 200,
-                    color: Colors.grey[300],
-                    child: const Center(
-                      child: Icon(Icons.photo, size: 40, color: Colors.grey),
+            child:
+                image.isNotEmpty
+                    ? Image.network(
+                      image,
+                      width: double.infinity,
+                      height: 200,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          width: double.infinity,
+                          height: 200,
+                          color: Colors.grey[300],
+                          child: const Center(
+                            child: Icon(
+                              Icons.error,
+                              size: 40,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        );
+                      },
+                    )
+                    : Container(
+                      width: double.infinity,
+                      height: 200,
+                      color: Colors.grey[300],
+                      child: const Center(
+                        child: Icon(Icons.photo, size: 40, color: Colors.grey),
+                      ),
                     ),
-                  ),
           ),
           Padding(
             padding: const EdgeInsets.all(16),
@@ -351,7 +366,10 @@ Future<void> _fetchUserInfo() async {
               children: [
                 Text(
                   species,
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 Text(
                   scientific,
@@ -367,19 +385,17 @@ Future<void> _fetchUserInfo() async {
                   children: [
                     Text(
                       'Care Difficulty: ',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[800],
-                      ),
+                      style: TextStyle(fontSize: 14, color: Colors.grey[800]),
                     ),
                     Text(
                       careDifficulty,
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: careDifficulty.toLowerCase() == 'easy'
-                            ? Colors.green
-                            : careDifficulty.toLowerCase() == 'medium'
+                        color:
+                            careDifficulty.toLowerCase() == 'easy'
+                                ? Colors.green
+                                : careDifficulty.toLowerCase() == 'medium'
                                 ? Colors.orange
                                 : Colors.red,
                       ),
@@ -390,10 +406,7 @@ Future<void> _fetchUserInfo() async {
                 // Adoption date
                 Text(
                   'Adoption Date: $formattedDate',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[800],
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.grey[800]),
                 ),
                 const SizedBox(height: 8),
                 InkWell(
@@ -401,17 +414,24 @@ Future<void> _fetchUserInfo() async {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => ReportIssuePage(
-                          plantName: species,
-                          plantImageUrl: image,
-                        ),
+                        builder:
+                            (context) => ReportIssuePage(
+                              plantName: species,
+                              plantImageUrl: image,
+                              adoptionId:
+                                  adoptionId, // Add this line to pass the adoption_id
+                            ),
                       ),
                     );
                   },
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.report_problem_outlined, size: 16, color: Colors.orange[700]),
+                      Icon(
+                        Icons.report_problem_outlined,
+                        size: 16,
+                        color: Colors.orange[700],
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         'Report issue with this plant',
