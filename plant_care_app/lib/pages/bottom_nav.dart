@@ -179,7 +179,7 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
           ),
           BottomNavigationBarItem(
             icon: const Icon(Icons.menu_book),
-            label: loc.guides,
+            label: loc.guidesTitle,
           ),
           BottomNavigationBarItem(
             icon: const Icon(Icons.group),
