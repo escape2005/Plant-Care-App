@@ -561,40 +561,40 @@ class _PlantDetailsWidgetState extends State<PlantDetailsWidget> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4.0),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.thermostat_outlined,
-                                  color: Colors.green[400],
-                                ),
-                                const SizedBox(width: 4),
-                                const Text(
-                                  '24°C',
-                                  style: TextStyle(fontSize: 16),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4.0),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.water_drop_outlined,
-                                  color: Colors.green[400],
-                                ),
-                                const SizedBox(width: 4),
-                                const Text(
-                                  '65% Humidity',
-                                  style: TextStyle(fontSize: 16),
-                                ),
-                              ],
-                            ),
-                          ),
+                          // Padding(
+                          //   padding: const EdgeInsets.symmetric(vertical: 4.0),
+                          //   child: Row(
+                          //     mainAxisSize: MainAxisSize.min,
+                          //     children: [
+                          //       Icon(
+                          //         Icons.thermostat_outlined,
+                          //         color: Colors.green[400],
+                          //       ),
+                          //       const SizedBox(width: 4),
+                          //       const Text(
+                          //         '24°C',
+                          //         style: TextStyle(fontSize: 16),
+                          //       ),
+                          //     ],
+                          //   ),
+                          // ),
+                          // Padding(
+                          //   padding: const EdgeInsets.symmetric(vertical: 4.0),
+                          //   child: Row(
+                          //     mainAxisSize: MainAxisSize.min,
+                          //     children: [
+                          //       Icon(
+                          //         Icons.water_drop_outlined,
+                          //         color: Colors.green[400],
+                          //       ),
+                          //       const SizedBox(width: 4),
+                          //       const Text(
+                          //         '65% Humidity',
+                          //         style: TextStyle(fontSize: 16),
+                          //       ),
+                          //     ],
+                          //   ),
+                          // ),
                           Padding(
                             padding: const EdgeInsets.symmetric(vertical: 4.0),
                             child: Row(
@@ -606,7 +606,7 @@ class _PlantDetailsWidgetState extends State<PlantDetailsWidget> {
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  '${widget.waterFrequencyDays} days cycle',
+                                  '${widget.waterFrequencyDays} days water cycle',
                                   style: const TextStyle(fontSize: 16),
                                 ),
                               ],

@@ -55,53 +55,58 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
-        child: Column(
-          children: [
-            _buildProgressIndicator(1),
-            const Spacer(),
-            CircleAvatar(
-              radius: 80,
-              backgroundColor: Colors.green[100],
-              child: const Icon(Icons.eco, size: 80, color: Colors.green),
+      body: Center(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                _buildProgressIndicator(1),
+                const SizedBox(height: 40),
+                CircleAvatar(
+                  radius: 80,
+                  backgroundColor: Colors.green[100],
+                  child: const Icon(Icons.eco, size: 80, color: Colors.green),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  "Forgot Password?",
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.green),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  "Enter your email address to receive reset instructions.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16, color: Colors.black54),
+                ),
+                const SizedBox(height: 20),
+                TextField(
+                  controller: _emailController,
+                  decoration: InputDecoration(
+                    labelText: "Email Address",
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    prefixIcon: const Icon(Icons.email, color: Colors.green),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  onPressed: _isLoading ? null : _sendOtp,
+                  child: _isLoading 
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text("Send Reset Link", style: TextStyle(color: Colors.white, fontSize: 16)),
+                ),
+                const SizedBox(height: 20),
+                _buildBackToLogin(context),
+              ],
             ),
-            const SizedBox(height: 20),
-            const Text(
-              "Forgot Password?",
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.green),
-            ),
-            const SizedBox(height: 10),
-            const Text(
-              "Enter your email address to receive reset instructions.",
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16, color: Colors.black54),
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: _emailController,
-              decoration: InputDecoration(
-                labelText: "Email Address",
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                prefixIcon: const Icon(Icons.email, color: Colors.green),
-              ),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              ),
-              onPressed: _isLoading ? null : _sendOtp,
-              child: _isLoading 
-                  ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text("Send Reset Link", style: TextStyle(color: Colors.white, fontSize: 16)),
-            ),
-            const SizedBox(height: 20),
-            _buildBackToLogin(context),
-            const Spacer(),
-          ],
+          ),
         ),
       ),
     );
@@ -194,58 +199,62 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
-        child: Column(
-          children: [
-            _buildProgressIndicator(2),
-            const Spacer(),
-            CircleAvatar(
-              radius: 80,
-              backgroundColor: Colors.green[100],
-              child: const Icon(Icons.lock_outline, size: 80, color: Colors.green),
+      body: Center(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                _buildProgressIndicator(2),
+                const SizedBox(height: 40),
+                CircleAvatar(
+                  radius: 80,
+                  backgroundColor: Colors.green[100],
+                  child: const Icon(Icons.lock_outline, size: 80, color: Colors.green),
+                ),
+                const SizedBox(height: 20),
+                const Text("Enter Verification Code", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.green)),
+                const SizedBox(height: 10),
+                Text(
+                  "We've sent a code to ${widget.email}",
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 16, color: Colors.black54),
+                ),
+                const SizedBox(height: 20),
+                TextField(
+                  controller: _otpController,
+                  keyboardType: TextInputType.number,
+                  maxLength: 6,
+                  textAlign: TextAlign.center,
+                  decoration: InputDecoration(
+                    labelText: "Enter OTP",
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    prefixIcon: const Icon(Icons.verified, color: Colors.green),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  onPressed: _isLoading ? null : _verifyOtp,
+                  child: _isLoading 
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text("Verify & Continue", style: TextStyle(color: Colors.white, fontSize: 16)),
+                ),
+                const SizedBox(height: 20),
+                _buildBackToLogin(context),
+              ],
             ),
-            const SizedBox(height: 20),
-            const Text("Enter Verification Code", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.green)),
-            const SizedBox(height: 10),
-            Text(
-              "We've sent a code to ${widget.email}",
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 16, color: Colors.black54),
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: _otpController,
-              keyboardType: TextInputType.number,
-              maxLength: 6,
-              textAlign: TextAlign.center,
-              decoration: InputDecoration(
-                labelText: "Enter OTP",
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                prefixIcon: const Icon(Icons.verified, color: Colors.green),
-              ),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.green,
-        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
+          ),
         ),
       ),
-      onPressed: _isLoading ? null : _verifyOtp,
-      child: _isLoading 
-          ? const CircularProgressIndicator(color: Colors.white)
-          : const Text("Verify & Continue", style: TextStyle(color: Colors.white, fontSize: 16)),
-    ),
-    const SizedBox(height: 20),
-    _buildBackToLogin(context),
-    const Spacer(),
-  ],
-)
-        ), 
-      
     );
   }
 
@@ -337,77 +346,81 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       if (mounted) setState(() => _isLoading = false);
     }
   }
-@override
+  
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
-        child: Column(
-          children: [
-            _buildProgressIndicator(3),
-            const Spacer(),
-            CircleAvatar(
-              radius: 80,
-              backgroundColor: Colors.green[100],
-              child: const Icon(Icons.vpn_key, size: 80, color: Colors.green),
-            ),
-            const SizedBox(height: 20),
-            const Text("Reset Password", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.green)),
-            const SizedBox(height: 10),
-            const Text("Create a new password for your account.", textAlign: TextAlign.center, style: TextStyle(fontSize: 16, color: Colors.black54)),
-            const SizedBox(height: 20),
-            TextField(
-              controller: _newPasswordController,
-              obscureText: _obscureNewPassword,
-              decoration: InputDecoration(
-                labelText: "New Password",
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                prefixIcon: const Icon(Icons.lock, color: Colors.green),
-                suffixIcon: IconButton(
-                  icon: Icon(_obscureNewPassword ? Icons.visibility : Icons.visibility_off),
-                  onPressed: () => setState(() => _obscureNewPassword = !_obscureNewPassword),
+      body: Center(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                _buildProgressIndicator(3),
+                const SizedBox(height: 40),
+                CircleAvatar(
+                  radius: 80,
+                  backgroundColor: Colors.green[100],
+                  child: const Icon(Icons.vpn_key, size: 80, color: Colors.green),
                 ),
-              ),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: _confirmPasswordController,
-              obscureText: _obscureConfirmPassword,
-              decoration: InputDecoration(
-                labelText: "Confirm Password",
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                prefixIcon: const Icon(Icons.lock_outline, color: Colors.green),
-                suffixIcon: IconButton(
-                  icon: Icon(_obscureConfirmPassword ? Icons.visibility : Icons.visibility_off),
-                  onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+                const SizedBox(height: 20),
+                const Text("Reset Password", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.green)),
+                const SizedBox(height: 10),
+                const Text("Create a new password for your account.", textAlign: TextAlign.center, style: TextStyle(fontSize: 16, color: Colors.black54)),
+                const SizedBox(height: 20),
+                TextField(
+                  controller: _newPasswordController,
+                  obscureText: _obscureNewPassword,
+                  decoration: InputDecoration(
+                    labelText: "New Password",
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    prefixIcon: const Icon(Icons.lock, color: Colors.green),
+                    suffixIcon: IconButton(
+                      icon: Icon(_obscureNewPassword ? Icons.visibility : Icons.visibility_off),
+                      onPressed: () => setState(() => _obscureNewPassword = !_obscureNewPassword),
+                    ),
+                  ),
                 ),
-              ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: _confirmPasswordController,
+                  obscureText: _obscureConfirmPassword,
+                  decoration: InputDecoration(
+                    labelText: "Confirm Password",
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    prefixIcon: const Icon(Icons.lock_outline, color: Colors.green),
+                    suffixIcon: IconButton(
+                      icon: Icon(_obscureConfirmPassword ? Icons.visibility : Icons.visibility_off),
+                      onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  onPressed: _isLoading ? null : _resetPassword,
+                  child: _isLoading 
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text(
+                          "Save New Password",
+                          style: TextStyle(color: Colors.white, fontSize: 16),
+                        ),
+                ),
+                const SizedBox(height: 20),
+                _buildBackToLogin(context),
+              ],
             ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-        style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.green,
-        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
+          ),
         ),
       ),
-      onPressed: _isLoading ? null : _resetPassword,
-      child: _isLoading 
-          ? const CircularProgressIndicator(color: Colors.white)
-          : const Text(
-              "Save New Password",
-              style: TextStyle(color: Colors.white, fontSize: 16),
-            ),
-    ),
-    const SizedBox(height: 20),
-    _buildBackToLogin(context),
-    const Spacer(),
-  ],
-)
-        ),
-      
-      
     );
   }
 

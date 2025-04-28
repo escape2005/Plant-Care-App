@@ -443,7 +443,7 @@ class MyPlantsScreenState extends State<MyPlantsScreen>
                   ),
                   const SizedBox(height: 12),
                   SizedBox(
-                    height: 125,
+                    height: 140,
                     child: ValueListenableBuilder(
                       valueListenable: _refreshKey,
                       builder: (context, _, __) {
@@ -538,7 +538,7 @@ class MyPlantsScreenState extends State<MyPlantsScreen>
                                   title:
                                       needsWatering
                                           ? 'Water ${plant.speciesName}'
-                                          : '${plant.speciesName} watered',
+                                          : '${plant.speciesName} watered for today',
                                   time: reminderTime,
                                   color:
                                       needsWatering
@@ -965,7 +965,7 @@ class MyPlantsScreenState extends State<MyPlantsScreen>
                   const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: () {
-                      // BACKEND: Handle photo upload
+                      _showPhotoSourceDialog(context);
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor:

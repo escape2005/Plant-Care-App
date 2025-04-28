@@ -218,32 +218,32 @@ Future<void> _fetchUserInfo() async {
                   ),
                 ),
 
-                const SizedBox(height: 12),
+                // const SizedBox(height: 12),
 
-                OutlinedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ReportIssuePage(
-                          plantName: 'Plant Allocation Issue',
-                          plantImageUrl: '',
-                        ),
-                      ),
-                    );
-                  },
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Colors.red),
-                    padding: const EdgeInsets.symmetric(vertical: 15),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: const Text(
-                    'Report Issue',
-                    style: TextStyle(color: Colors.red, fontSize: 16),
-                  ),
-                ),
+                // OutlinedButton(
+                //   onPressed: () {
+                //     Navigator.push(
+                //       context,
+                //       MaterialPageRoute(
+                //         builder: (context) => ReportIssuePage(
+                //           plantName: 'Plant Allocation Issue',
+                //           plantImageUrl: '',
+                //         ),
+                //       ),
+                //     );
+                //   },
+                //   style: OutlinedButton.styleFrom(
+                //     side: const BorderSide(color: Colors.red),
+                //     padding: const EdgeInsets.symmetric(vertical: 15),
+                //     shape: RoundedRectangleBorder(
+                //       borderRadius: BorderRadius.circular(10),
+                //     ),
+                //   ),
+                //   child: const Text(
+                //     'Report Issue',
+                //     style: TextStyle(color: Colors.red, fontSize: 16),
+                //   ),
+                // ),
 
                 const SizedBox(height: 12),
 
