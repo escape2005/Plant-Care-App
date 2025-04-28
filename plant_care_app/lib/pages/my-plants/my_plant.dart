@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:plant_care_app/pages/bottom_nav.dart';
 import 'package:plant_care_app/pages/indi-plants/indi_plants.dart';
@@ -5,11 +6,20 @@ import 'package:plant_care_app/pages/my-plants/date_time_selector.dart';
 import 'package:plant_care_app/services/notification_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'adopt_plant.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'dart:typed_data';
 
 DateTime selectedDate = DateTime.now();
 TimeOfDay selectedTime = TimeOfDay.now();
 
 final bottomNav = const BottomNavScreen();
+File? _selectedImage;
+bool _isUploading = false;
+final _notesController = TextEditingController(); // For plant description
+var imageBytes; // To store the image bytes
+final userId = supabase.auth.currentUser!.id; // For current user ID
+var imagePath; // For storage path
 
 class Plant {
   final String speciesName;
@@ -296,82 +306,99 @@ class _MyPlantsScreenState extends State<MyPlantsScreen> {
           ),
           // Third Section - Today's Plant Care
           Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-         children: [
-          Text(
-         "Today's Plant Care",
-         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-      ),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Today's Plant Care",
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 12),
-              SizedBox(
-                   height: 125,
-                   child: FutureBuilder<List<Plant>>(
-                   future: fetchPlants(),
-                     builder: (context, snapshot) {
+                SizedBox(
+                  height: 125,
+                  child: FutureBuilder<List<Plant>>(
+                    future: fetchPlants(),
+                    builder: (context, snapshot) {
                       // Display all plants, regardless of watering status
                       return ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: snapshot.data!.length,
-              separatorBuilder: (context, index) => const SizedBox(width: 12),
-              itemBuilder: (context, index) {
-                final plant = snapshot.data![index];
+                        scrollDirection: Axis.horizontal,
+                        itemCount: snapshot.data!.length,
+                        separatorBuilder:
+                            (context, index) => const SizedBox(width: 12),
+                        itemBuilder: (context, index) {
+                          final plant = snapshot.data![index];
                           // Format time_to_water for display
                           String displayTime = "Anytime";
-                         if (plant.timeToWater != null && 
-                         plant.timeToWater!.isNotEmpty) {
+                          if (plant.timeToWater != null &&
+                              plant.timeToWater!.isNotEmpty) {
                             // Parse time from time_to_water (expected format "10:00:00")
                             final timeParts = plant.timeToWater!.split(':');
-                  if (timeParts.length >= 2) {
-                    final hour = int.tryParse(timeParts[0]) ?? 0;
-                    final minute = int.tryParse(timeParts[1]) ?? 0;
-                    final period = hour < 12 ? 'AM' : 'PM';
-                    final displayHour = hour % 12 == 0 ? 12 : hour % 12;
-                    displayTime = '$displayHour:${minute.toString().padLeft(2, '0')} $period';
-                  }
-                }
+                            if (timeParts.length >= 2) {
+                              final hour = int.tryParse(timeParts[0]) ?? 0;
+                              final minute = int.tryParse(timeParts[1]) ?? 0;
+                              final period = hour < 12 ? 'AM' : 'PM';
+                              final displayHour =
+                                  hour % 12 == 0 ? 12 : hour % 12;
+                              displayTime =
+                                  '$displayHour:${minute.toString().padLeft(2, '0')} $period';
+                            }
+                          }
 
                           // Check if plant needs watering
                           final today = DateTime.now();
-                bool needsWatering = true;
-                if (plant.lastWateredDate != null) {
-                  final daysSinceWatered = today.difference(plant.lastWateredDate!).inDays;
-                  final waterFrequency = plant.waterFrequencyDays ?? 15;
-                  needsWatering = daysSinceWatered >= waterFrequency;
-                }
+                          bool needsWatering = true;
+                          if (plant.lastWateredDate != null) {
+                            final daysSinceWatered =
+                                today.difference(plant.lastWateredDate!).inDays;
+                            final waterFrequency =
+                                plant.waterFrequencyDays ?? 15;
+                            needsWatering = daysSinceWatered >= waterFrequency;
+                          }
 
-                return GestureDetector(
-                  onTap: () {
-                    _showReminderTimeDialog(context, plant);
-                  },
-                  child: _buildCareReminderCard(
-                    context: context,
-                    icon: Icons.water_drop,
-                    iconColor: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.green[400]! // Light green for dark mode
-                        : Colors.green[600]!,  // Dark green for light mode
-                    title: needsWatering
-                        ? 'Water ${plant.speciesName}'
-                        : '${plant.speciesName} watered',
-                    time: _updatedReminderTimes.containsKey(plant.speciesName)
-                        ? _formatTimeString(_updatedReminderTimes[plant.speciesName]!)
-                        : displayTime,
-                    color: needsWatering
-                        ? Theme.of(context).colorScheme.primary
-                        : Colors.green,
+                          return GestureDetector(
+                            onTap: () {
+                              _showReminderTimeDialog(context, plant);
+                            },
+                            child: _buildCareReminderCard(
+                              context: context,
+                              icon: Icons.water_drop,
+                              iconColor:
+                                  Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? Colors
+                                          .green[400]! // Light green for dark mode
+                                      : Colors
+                                          .green[600]!, // Dark green for light mode
+                              title:
+                                  needsWatering
+                                      ? 'Water ${plant.speciesName}'
+                                      : '${plant.speciesName} watered',
+                              time:
+                                  _updatedReminderTimes.containsKey(
+                                        plant.speciesName,
+                                      )
+                                      ? _formatTimeString(
+                                        _updatedReminderTimes[plant
+                                            .speciesName]!,
+                                      )
+                                      : displayTime,
+                              color:
+                                  needsWatering
+                                      ? Theme.of(context).colorScheme.primary
+                                      : Colors.green,
+                            ),
+                          );
+                        },
+                      );
+                    },
                   ),
-                );
-              },
-            );
-          },
-        ),
-      ),
-    ],
-  ),
-),
+                ),
+              ],
+            ),
+          ),
           const SizedBox(height: 16),
           // Fourth Section - All Plants
           Padding(
@@ -434,104 +461,128 @@ class _MyPlantsScreenState extends State<MyPlantsScreen> {
                         children: [
                           // Total Plants
                           Expanded(
-                          child: Container(
-                          height: 120,
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surface,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                          BoxShadow(
-                          color: Theme.of(context).shadowColor,
-                            spreadRadius: 0.1,
-                              blurRadius: 3,
-                            offset: const Offset(0, 1),
+                            child: Container(
+                              height: 120,
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.surface,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Theme.of(context).shadowColor,
+                                    spreadRadius: 0.1,
+                                    blurRadius: 3,
+                                    offset: const Offset(0, 1),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.eco,
+                                    color: Colors.green, // Fixed green color
+                                    size: 24,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    '$totalPlants',
+                                    style: TextStyle(
+                                      color:
+                                          Theme.of(
+                                            context,
+                                          ).colorScheme.onSurface,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Total Plants',
+                                    style: TextStyle(
+                                      color:
+                                          Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                         ],
-                      ),
-              child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-               Icon(
-               Icons.eco,
-              color: Colors.green, // Fixed green color
-                 size: 24,
-              ),
-               const SizedBox(height: 8),
-        Text(
-          '$totalPlants',
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurface,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        Text(
-          'Total Plants',
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-            fontSize: 11,
-          ),
-        ),
-      ],
-    ),
-  ),
-),
+                          ),
                           const SizedBox(width: 8),
 
                           // Healthy
                           Expanded(
-  child: Container(
-    height: 120,
-    padding: const EdgeInsets.all(12),
-    decoration: BoxDecoration(
-      color: Theme.of(context).brightness == Brightness.dark
-          ? Colors.green[900]  // Dark mode container
-          : Colors.green[100],  // Light mode container
-      borderRadius: BorderRadius.circular(12),
-      boxShadow: [
-        BoxShadow(
-          color: Theme.of(context).shadowColor,
-          spreadRadius: 0.1,
-          blurRadius: 3,
-          offset: const Offset(0, 1),
-        )
-      ],
-    ),
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(
-          Icons.check_circle_outline,
-          color: Theme.of(context).brightness == Brightness.dark
-              ? Colors.green[400]  // Light green for dark mode
-              : Colors.green[600],  // Dark green for light mode
-          size: 24,
-        ),
-        const SizedBox(height: 8),
-        Text(
-          '$healthyPlants',
-          style: TextStyle(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.green[100]  // Light text for dark background
-                : Colors.green[800],  // Dark text for light background
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        Text(
-          'Healthy',
-          style: TextStyle(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.green[100]!.withOpacity(0.7)
-                : Colors.green[800]!.withOpacity(0.7),
-            fontSize: 11,
-          ),
-        ),
-      ],
-    ),
-  ),
-),
+                            child: Container(
+                              height: 120,
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color:
+                                    Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? Colors
+                                            .green[900] // Dark mode container
+                                        : Colors
+                                            .green[100], // Light mode container
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Theme.of(context).shadowColor,
+                                    spreadRadius: 0.1,
+                                    blurRadius: 3,
+                                    offset: const Offset(0, 1),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.check_circle_outline,
+                                    color:
+                                        Theme.of(context).brightness ==
+                                                Brightness.dark
+                                            ? Colors
+                                                .green[400] // Light green for dark mode
+                                            : Colors
+                                                .green[600], // Dark green for light mode
+                                    size: 24,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    '$healthyPlants',
+                                    style: TextStyle(
+                                      color:
+                                          Theme.of(context).brightness ==
+                                                  Brightness.dark
+                                              ? Colors
+                                                  .green[100] // Light text for dark background
+                                              : Colors
+                                                  .green[800], // Dark text for light background
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Healthy',
+                                    style: TextStyle(
+                                      color:
+                                          Theme.of(context).brightness ==
+                                                  Brightness.dark
+                                              ? Colors.green[100]!.withOpacity(
+                                                0.7,
+                                              )
+                                              : Colors.green[800]!.withOpacity(
+                                                0.7,
+                                              ),
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                           const SizedBox(width: 8),
 
                           // Needs Care
@@ -708,140 +759,77 @@ class _MyPlantsScreenState extends State<MyPlantsScreen> {
 
           // Fifth Section - Add Plant Photo
           Padding(
-  padding: const EdgeInsets.all(16),
-  key: GlobalKey(debugLabel: 'photoUploadSection'),
-  child: Container(
-    padding: const EdgeInsets.all(24),
-    decoration: BoxDecoration(
-      color: Theme.of(context).colorScheme.surface,
-      borderRadius: BorderRadius.circular(12),
-    ),
-    child: Column(
-      children: [
-        Container(
-          width: 70,
-          height: 70,
-          decoration: BoxDecoration(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.green[900]  // Dark mode green
-                : Colors.green[100],  // Light mode green
-            shape: BoxShape.circle,
-          ),
-          child: Icon(
-            Icons.cloud_upload_outlined,
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.green[400]  // Light green for dark mode
-                : Colors.green[600],  // Dark green for light mode
-            size: 36,
-          ),
-        ),
-        const SizedBox(height: 16),
-        Text(
-          'Add your plant photo',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Share your plant with our NGO experts',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 24),
-        ElevatedButton(
-          onPressed: () {
-            // BACKEND: Handle photo upload
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Theme.of(context).brightness == Brightness.dark
-                ? Colors.green[800]  // Dark mode button color
-                : Colors.green[600],  // Light mode button color
-            minimumSize: const Size(double.infinity, 50),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+            padding: const EdgeInsets.all(16),
+            key: GlobalKey(debugLabel: 'photoUploadSection'),
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    width: 70,
+                    height: 70,
+                    decoration: BoxDecoration(
+                      color:
+                          Theme.of(context).brightness == Brightness.dark
+                              ? Colors.green[900] // Dark mode green
+                              : Colors.green[100], // Light mode green
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.cloud_upload_outlined,
+                      color:
+                          Theme.of(context).brightness == Brightness.dark
+                              ? Colors.green[400] // Light green for dark mode
+                              : Colors.green[600], // Dark green for light mode
+                      size: 36,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Add your plant photo',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Share your plant with our NGO experts',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: () {
+                      _showPhotoSourceDialog(context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:
+                          Theme.of(context).brightness == Brightness.dark
+                              ? Colors.green[800] // Dark mode button color
+                              : Colors.green[600], // Light mode button color
+                      minimumSize: const Size(double.infinity, 50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text(
+                      'Select Photo',
+                      style: TextStyle(
+                        color: Colors.white, // White text for better contrast
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          child: Text(
-            'Select Photo',
-            style: TextStyle(
-              color: Colors.white,  // White text for better contrast
-              fontSize: 16,
-            ),
-          ),
-        ),
-      ],
-    ),
-  ),
-),
-
-          // Sixth Section - Call Reminder Test Button
-          // Padding(
-          //   padding: const EdgeInsets.all(16),
-          //   child: Container(
-          //     padding: const EdgeInsets.all(24),
-          //     decoration: BoxDecoration(
-          //       color: Theme.of(context).colorScheme.surface,
-          //       borderRadius: BorderRadius.circular(12),
-          //       border: Border.all(
-          //         color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
-          //         width: 1,
-          //       ),
-          //     ),
-          //     child: Column(
-          //       children: [
-          //         Container(
-          //           width: 70,
-          //           height: 70,
-          //           decoration: BoxDecoration(
-          //             color: Theme.of(context).colorScheme.primaryContainer,
-          //             shape: BoxShape.circle,
-          //           ),
-          //           child: Icon(
-          //             Icons.notifications_active,
-          //             color: Theme.of(context).colorScheme.primary,
-          //             size: 36,
-          //           ),
-          //         ),
-          //         const SizedBox(height: 16),
-          //         Text(
-          //           'Test Notification',
-          //           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-          //             fontWeight: FontWeight.bold,
-          //           ),
-          //         ),
-          //         const SizedBox(height: 8),
-          //         Text(
-          //           'Send a test notification immediately',
-          //           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-          //             color: Theme.of(context).colorScheme.onSurfaceVariant,
-          //           ),
-          //           textAlign: TextAlign.center,
-          //         ),
-          //         const SizedBox(height: 24),
-          //         ElevatedButton(
-          //           onPressed: _sendTestNotification,
-          //           style: ElevatedButton.styleFrom(
-          //             backgroundColor: Theme.of(context).colorScheme.primary,
-          //             minimumSize: const Size(double.infinity, 50),
-          //             shape: RoundedRectangleBorder(
-          //               borderRadius: BorderRadius.circular(12),
-          //             ),
-          //           ),
-          //           child: Text(
-          //             'Call Reminder',
-          //             style: TextStyle(
-          //               color: Theme.of(context).colorScheme.onPrimary,
-          //               fontSize: 16,
-          //             ),
-          //           ),
-          //         ),
-          //       ],
-          //     ),
-          //   ),
-          // ),
         ],
       ),
     );
@@ -1358,7 +1346,6 @@ class _MyPlantsScreenState extends State<MyPlantsScreen> {
     required String title,
     required String time,
     required Color color,
-
   }) {
     return Container(
       width: 200,
@@ -1371,7 +1358,7 @@ class _MyPlantsScreenState extends State<MyPlantsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color:iconColor ),
+          Icon(icon, color: iconColor),
           const SizedBox(height: 12),
           Text(
             title,
@@ -1426,7 +1413,7 @@ class _MyPlantsScreenState extends State<MyPlantsScreen> {
 
       // Check if plant needs attention (disabled state)
       if (difference > maxDays) {
-        isDisabled = true;
+        isDisabled = false;
         warningMessage =
             "Oops! You have not watered your plants for more than $maxDays days. Please share the picture of your plant with our NGO experts";
       }
@@ -1448,7 +1435,7 @@ class _MyPlantsScreenState extends State<MyPlantsScreen> {
       // No watering record found
       waterLevel = 1.0;
       statusColor = Colors.red;
-      isDisabled = true;
+      isDisabled = false;
       warningMessage =
           "Share the first picture of your plant with the NGO experts";
     }
@@ -1792,6 +1779,415 @@ class _MyPlantsScreenState extends State<MyPlantsScreen> {
       }
     }
     return timeString;
+  }
+
+  // Add these methods around line 1177 (before _sendTestNotification method)
+  void _showPhotoSourceDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Choose Photo Source',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(
+                  Icons.photo_library,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                title: Text('Photo Gallery'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImageFromSource(ImageSource.gallery);
+                },
+              ),
+              ListTile(
+                leading: Icon(
+                  Icons.camera_alt,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                title: Text('Camera'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImageFromSource(ImageSource.camera);
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text(
+                'Cancel',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _pickImageFromSource(ImageSource source) async {
+    // Request camera permission if using camera
+    if (source == ImageSource.camera) {
+      final status = await Permission.camera.request();
+      if (status.isDenied) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Camera permission is required to take a photo'),
+              backgroundColor: Theme.of(context).colorScheme.error,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+        return;
+      }
+    }
+
+    final ImagePicker picker = ImagePicker();
+    try {
+      final XFile? image = await picker.pickImage(
+        source: source,
+        imageQuality: 80,
+        maxWidth: 1200,
+      );
+
+      if (image != null) {
+        setState(() {
+          _selectedImage = File(image.path);
+        });
+        _showImagePreviewDialog(context);
+      }
+    } catch (e) {
+      print('Error picking image: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error selecting image: ${e.toString()}'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  void _showImagePreviewDialog(BuildContext context) {
+    // Add a state variable to track the selected plant
+    String? _selectedPlantId;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: SingleChildScrollView(
+            // Add this to make content scrollable
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    'Plant Photo Preview',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ),
+                Container(
+                  constraints: BoxConstraints(
+                    maxHeight:
+                        MediaQuery.of(context).size.height *
+                        0.35, // Reduced from 0.4 to give more room
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.file(_selectedImage!, fit: BoxFit.contain),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 8.0,
+                  ),
+                  child: FutureBuilder<List<Plant>>(
+                    future: fetchPlants(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      } else if (snapshot.hasError) {
+                        return Text('Error loading plants: ${snapshot.error}');
+                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return const Text('No plants available');
+                      } else {
+                        return StatefulBuilder(
+                          builder: (context, setState) {
+                            return DropdownButtonFormField<String>(
+                              decoration: InputDecoration(
+                                labelText: 'Link to your plant',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                filled: true,
+                                fillColor:
+                                    Theme.of(context).colorScheme.surface,
+                              ),
+                              hint: const Text('Select a plant'),
+                              value: _selectedPlantId,
+                              items:
+                                  snapshot.data!.map((Plant plant) {
+                                    return DropdownMenuItem<String>(
+                                      value: plant.plantId,
+                                      child: Text(plant.speciesName),
+                                    );
+                                  }).toList(),
+                              onChanged: (String? newValue) {
+                                setState(() {
+                                  _selectedPlantId = newValue;
+                                });
+                              },
+                            );
+                          },
+                        );
+                      }
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 8.0,
+                  ),
+                  child: TextField(
+                    controller: _notesController,
+                    maxLines: 2,
+                    decoration: InputDecoration(
+                      hintText: 'Add notes about this plant (optional)',
+                      labelText: 'Notes',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      filled: true,
+                      fillColor: Theme.of(context).colorScheme.surface,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    children: [
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                Theme.of(context).colorScheme.primary,
+                            foregroundColor:
+                                Theme.of(context).colorScheme.onPrimary,
+                            minimumSize: const Size(double.infinity, 50),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onPressed:
+                              _isUploading
+                                  ? null
+                                  : () => _sendImageToNGO(
+                                    context,
+                                    _selectedPlantId,
+                                  ),
+                          child:
+                              _isUploading
+                                  ? Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          color:
+                                              Theme.of(
+                                                context,
+                                              ).colorScheme.onPrimary,
+                                          strokeWidth: 2.0,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      const Text('Sending...'),
+                                    ],
+                                  )
+                                  : const Text(
+                                    'Send to NGO',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            _showPhotoSourceDialog(context);
+                          },
+                          child: Text(
+                            'Choose Different Photo',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.primary,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: Text(
+                          'Cancel',
+                          style: TextStyle(
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future _sendImageToNGO(
+    BuildContext context,
+    String? selectedPlantId, {
+    String? adoptionId, // Add adoptionId parameter
+  }) async {
+    if (_selectedImage == null) return;
+
+    setState(() {
+      _isUploading = true;
+    });
+
+    try {
+      // Get current user ID
+      final userId = supabase.auth.currentUser?.id;
+      if (userId == null) {
+        throw Exception('User not logged in');
+      }
+
+      // Create a unique path for the image
+      final imagePath = '/$userId/${DateTime.now().millisecondsSinceEpoch}';
+
+      // Convert File to Uint8List
+      final Uint8List imageBytes = await _selectedImage!.readAsBytes();
+
+      // Upload image to Supabase storage
+      await supabase.storage
+          .from('community-images')
+          .uploadBinary(
+            imagePath,
+            imageBytes,
+            fileOptions: FileOptions(upsert: true, contentType: 'image/jpeg'),
+          );
+
+      // Prepare data for the database
+      final Map imageData = {
+        'user_id': userId,
+        'image_path': imagePath,
+        'notes': _notesController.text,
+      };
+
+      // Add plant_id if one was selected
+      if (selectedPlantId != null && selectedPlantId.isNotEmpty) {
+        imageData['plant_id'] = selectedPlantId;
+      }
+
+      // Save record to user_plants_images table
+      await supabase.from('user_plants_images').insert(imageData);
+
+      // Also update daily_activity to record watering if adoptionId is provided
+      if (adoptionId != null && adoptionId.isNotEmpty) {
+        final now = DateTime.now().toUtc().toIso8601String();
+
+        await supabase.from('daily_activity').insert({
+          'user_id': userId,
+          'adoption_id': adoptionId,
+          'activity_time': now,
+        });
+
+        // You might want to update UI state related to watering if needed
+        // For example, if this component also tracks watering status:
+        // setState(() {
+        //   wateredDays.add(DateTime.now());
+        //   wateredToday = true;
+        // });
+      }
+
+      if (mounted) {
+        Navigator.pop(context); // Close the preview dialog
+
+        // Clear the notes field after successful upload
+        _notesController.clear();
+
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              adoptionId != null
+                  ? 'Plant photo sent and watering recorded!'
+                  : 'Your plant photo has been sent to the NGO experts!',
+              style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
+            ),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      print('Error uploading image or recording watering: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isUploading = false;
+        });
+      }
+    }
   }
 
   void _sendTestNotification() {
