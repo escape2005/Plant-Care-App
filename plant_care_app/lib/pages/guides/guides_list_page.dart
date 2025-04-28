@@ -6,6 +6,8 @@ import '../../services/guide_service.dart';
 import '../../services/external_link_service.dart';
 import 'guide_detail_page.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:intl/intl.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class GuidesListPage extends StatelessWidget {
   final GuideCategory category;
@@ -16,7 +18,7 @@ class GuidesListPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('${category.title} Guides'),
+        title: Text('${category.title} ${AppLocalizations.of(context)!.guidesTitle}'),
         backgroundColor: Colors.white,
         elevation: 0,
         iconTheme: IconThemeData(color: Colors.green.shade800),
@@ -29,7 +31,7 @@ class GuidesListPage extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(16),
               child: Text(
-                'Guides & Articles',
+                AppLocalizations.of(context)!.guidesArticles,
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -38,13 +40,13 @@ class GuidesListPage extends StatelessWidget {
               ),
             ),
             
-            _buildGuidesSection(),
+            _buildGuidesSection(context),
             
             // External Links Section
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
               child: Text(
-                'External Links',
+                AppLocalizations.of(context)!.externalLinks,
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -53,7 +55,7 @@ class GuidesListPage extends StatelessWidget {
               ),
             ),
             
-            _buildExternalLinksSection(),
+            _buildExternalLinksSection(context),
             
             const SizedBox(height: 20),
           ],
@@ -62,7 +64,7 @@ class GuidesListPage extends StatelessWidget {
     );
   }
 
-  Widget _buildGuidesSection() {
+  Widget _buildGuidesSection(BuildContext context) {
     return FutureBuilder<List<Guide>>(
       future: GuideService().getGuidesByCategory(category.id),
       builder: (context, snapshot) {
@@ -71,7 +73,7 @@ class GuidesListPage extends StatelessWidget {
         }
         
         if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
+          return Center(child: Text('${AppLocalizations.of(context)!.guidesError} ${snapshot.error}'));
         }
         
         final guides = snapshot.data ?? [];
@@ -80,7 +82,7 @@ class GuidesListPage extends StatelessWidget {
           return Padding(
             padding: const EdgeInsets.all(16),
             child: Center(
-              child: Text('No ${category.title} guides available yet'),
+              child: Text(AppLocalizations.of(context)!.noGuidesAvailable(category.title)),
             ),
           );
         }
@@ -154,7 +156,7 @@ class GuidesListPage extends StatelessWidget {
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                _formatDate(guide.createdAt),
+                                _formatLocalizedDate(context, guide.createdAt),
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: Colors.grey.shade600,
@@ -175,7 +177,7 @@ class GuidesListPage extends StatelessWidget {
     );
   }
 
-  Widget _buildExternalLinksSection() {
+  Widget _buildExternalLinksSection(BuildContext context) {
     return FutureBuilder<List<ExternalLink>>(
       future: ExternalLinkService().getLinksByCategory(category.id),
       builder: (context, snapshot) {
@@ -187,15 +189,15 @@ class GuidesListPage extends StatelessWidget {
         }
         
         if (snapshot.hasError) {
-          return Center(child: Text('Error loading external links: ${snapshot.error}'));
+          return Center(child: Text('${AppLocalizations.of(context)!.externalLinksError} ${snapshot.error}'));
         }
         
         final links = snapshot.data ?? [];
         
         if (links.isEmpty) {
-          return const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Center(child: Text('No external resources available')),
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Center(child: Text(AppLocalizations.of(context)!.noExternalResources)),
           );
         }
         
@@ -216,7 +218,6 @@ class GuidesListPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Custom link preview
                     AnyLinkPreview(
                       link: link.url,
                       displayDirection: UIDirection.uiDirectionHorizontal,
@@ -232,7 +233,7 @@ class GuidesListPage extends StatelessWidget {
                         fontSize: 14, 
                         color: Colors.grey.shade800,
                       ),
-                      errorBody: link.description ?? 'Check out this resource',
+                      errorBody: link.description ?? AppLocalizations.of(context)!.checkResource,
                       errorTitle: link.title,
                       errorImage: link.thumbnailUrl,
                       cache: const Duration(days: 7),
@@ -258,11 +259,8 @@ class GuidesListPage extends StatelessWidget {
     );
   }
 
-  String _formatDate(DateTime date) {
-    final months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
-    return '${date.day} ${months[date.month - 1]} ${date.year}';
+  String _formatLocalizedDate(BuildContext context, DateTime date) {
+    final locale = AppLocalizations.of(context)?.localeName ?? 'en';
+    return DateFormat.yMMMd(locale).format(date);
   }
 }

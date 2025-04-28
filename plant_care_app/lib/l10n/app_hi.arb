@@ -47,5 +47,76 @@
 
   "confirmLogout": "लॉगआउट की पुष्टि करें",
   "logoutConfirmation": "क्या आप वाकई लॉगआउट करना चाहते हैं?",
-  "cancel": "रद्द करें"
+  "cancel": "रद्द करें",
+
+  "changePassword": "पासवर्ड बदलें",
+  "currentPassword": "वर्तमान पासवर्ड",
+  "enterCurrentPassword": "वर्तमान पासवर्ड दर्ज करें",
+  "verify": "सत्यापित करें",
+  "newPassword": "नया पासवर्ड",
+  "enterNewPassword": "नया पासवर्ड दर्ज करें",
+  "confirmPassword": "पासवर्ड की पुष्टि करें",
+  "reenterNewPassword": "नया पासवर्ड पुनः दर्ज करें",
+  "saveNewPassword": "नया पासवर्ड सहेजें",
+  "incorrectPassword": "गलत पासवर्ड",
+  "passwordsDontMatch": "पासवर्ड मेल नहीं खाते",
+  "passwordUpdated": "पासवर्ड सफलतापूर्वक अपडेट किया गया",
+  "passwordUpdateError": "पासवर्ड अपडेट करते समय त्रुटि:",
+
+  "faqsTitle": "सामान्य पूछे जाने वाले प्रश्न",
+  "@faqsTitle": {
+    "description": "FAQ पेज का शीर्षक"
+  },
+  "noFaqsAvailable": "कोई सामान्य प्रश्न उपलब्ध नहीं हैं",
+  "@noFaqsAvailable": {
+    "description": "FAQ पेज पर खाली स्थिति संदेश"
+  },
+
+  "contactSupportTitle": "सहायता से संपर्क करें",
+  "loadSupportInfoError": "समर्थन जानकारी लोड करने में विफल",
+  "noSupportInfoAvailable": "वर्तमान में कोई समर्थन जानकारी उपलब्ध नहीं है",
+  "needHelp": "सहायता चाहिए?",
+  "emailLabel": "ईमेल:",
+  "phoneLabel": "फ़ोन:",
+
+  "feedbackTitle": "प्रतिक्रिया भेजें",
+  "feedbackHeader": "हम आपकी प्रतिक्रिया को महत्व देते हैं!",
+  "feedbackSubheader": "अपने विचार, सुझाव या समस्याओं को साझा करके हमें बेहतर बनाने में मदद करें",
+  "nameLabel": "नाम",
+  "emailLabel": "ईमेल",
+  "categoryLabel": "श्रेणी",
+  "feedbackLabel": "आपकी प्रतिक्रिया",
+  "nameValidation": "कृपया अपना नाम दर्ज करें",
+  "emailValidationEmpty": "कृपया अपना ईमेल दर्ज करें",
+  "emailValidationInvalid": "कृपया एक वैध ईमेल दर्ज करें",
+  "feedbackValidationEmpty": "कृपया अपनी प्रतिक्रिया दर्ज करें",
+  "feedbackValidationLength": "कृपया और विवरण प्रदान करें",
+  "generalCategory": "सामान्य",
+  "bugReportCategory": "त्रुटि रिपोर्ट",
+  "featureRequestCategory": "फ़ीचर अनुरोध",
+  "uiUxCategory": "यूआई/यूएक्स",
+  "performanceCategory": "प्रदर्शन",
+  "otherCategory": "अन्य",
+  "feedbackHint": "कृपया अपनी प्रतिक्रिया विस्तार से वर्णित करें...",
+  "submitButton": "प्रतिक्रिया भेजें",
+  "feedbackSuccess": "आपकी प्रतिक्रिया के लिए धन्यवाद!",
+  "feedbackError": "प्रतिक्रिया सबमिट करने में त्रुटि: ",
+  "dateFormat": "d MMM, y",
+  "guidesTitle": "गाइड्स",
+  "guidesArticles": "गाइड्स और लेख",
+  "externalLinks": "बाहरी लिंक",
+  "noGuidesAvailable": "अभी कोई {category} गाइड उपलब्ध नहीं है",
+  "guidesError": "गाइड लोड करने में त्रुटि:",
+  "externalLinksError": "बाहरी लिंक लोड करने में त्रुटि:",
+  "noExternalResources": "कोई बाहरी संसाधन उपलब्ध नहीं",
+  "checkResource": "इस संसाधन को देखें",
+
+  "plantCareGuides": "पौधों की देखभाल गाइड",
+  "guides": "गाइड्स",
+  "frequentlyAskedQuestions": "अक्सर पूछे जाने वाले प्रश्न",
+  "error": "त्रुटि",
+  "noGuideCategoriesFound": "कोई गाइड श्रेणियां नहीं मिलीं"
+  
+
+
 }

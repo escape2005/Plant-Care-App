@@ -183,10 +183,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor:Theme.of(context).colorScheme.background,
       appBar: AppBar(
-        title: const Text('Plantify', style: TextStyle(color: Colors.green)),
-        backgroundColor: Colors.white,
+        title:  Text('Plantify', style: TextStyle(color: Theme.of(context).colorScheme.onBackground)),
+        backgroundColor: Theme.of(context).colorScheme.background,
         elevation: 0,
         centerTitle: true,
       ),

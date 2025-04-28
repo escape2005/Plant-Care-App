@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ChangePasswordPage extends StatefulWidget {
@@ -37,7 +38,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
     } catch (e) {
       setState(() {
         _isVerified = false;
-        _currentPasswordError = 'Incorrect password';
+        _currentPasswordError = AppLocalizations.of(context)!.incorrectPassword;
       });
     } finally {
       setState(() => _isLoading = false);
@@ -53,12 +54,12 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
         UserAttributes(password: _newPassController.text),
       );
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Password updated successfully')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.passwordUpdated)),
       );
       Navigator.pop(context);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error updating password: ${e.toString()}')),
+        SnackBar(content: Text('${AppLocalizations.of(context)!.passwordUpdateError} ${e.toString()}')),
       );
     } finally {
       setState(() => _isLoading = false);
@@ -75,9 +76,11 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Change Password'),
+        title: Text(l10n.changePassword),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
@@ -92,78 +95,70 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
             children: [
               _buildPasswordField(
                 controller: _currentPassController,
-                label: 'Current Password',
-                hint: 'Enter current password',
+                label: l10n.currentPassword,
+                hint: l10n.enterCurrentPassword,
                 verified: _isVerified,
                 errorText: _currentPasswordError,
               ),
               if (!_isVerified) ...[
                 const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    onPressed: _isLoading ? null : _verifyCurrentPassword,
-                    child: _isLoading
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text(
-                            'Verify',
-                            style: TextStyle(color: Colors.white, fontSize: 16),
-                          ),
-                  ),
+                _buildActionButton(
+                  text: l10n.verify,
+                  onPressed: _verifyCurrentPassword,
                 ),
               ],
               if (_isVerified) ...[
                 const SizedBox(height: 20),
                 _buildPasswordField(
                   controller: _newPassController,
-                  label: 'New Password',
-                  hint: 'Enter new password',
+                  label: l10n.newPassword,
+                  hint: l10n.enterNewPassword,
                   isNew: true,
                 ),
                 const SizedBox(height: 20),
                 _buildPasswordField(
                   controller: _confirmPassController,
-                  label: 'Confirm Password',
-                  hint: 'Re-enter new password',
+                  label: l10n.confirmPassword,
+                  hint: l10n.reenterNewPassword,
                   isNew: true,
                   validator: (value) {
                     if (value != _newPassController.text) {
-                      return 'Passwords do not match';
+                      return l10n.passwordsDontMatch;
                     }
                     return null;
                   },
                 ),
                 const SizedBox(height: 30),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    onPressed: _isLoading ? null : _updatePassword,
-                    child: _isLoading
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text(
-                            'Save New Password',
-                            style: TextStyle(color: Colors.white, fontSize: 16),
-                          ),
-                  ),
+                _buildActionButton(
+                  text: l10n.saveNewPassword,
+                  onPressed: _updatePassword,
                 ),
               ],
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildActionButton({required String text, required VoidCallback onPressed}) {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.green,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        onPressed: _isLoading ? null : onPressed,
+        child: _isLoading
+            ? const CircularProgressIndicator(color: Colors.white)
+            : Text(
+                text,
+                style: const TextStyle(color: Colors.white, fontSize: 16),
+              ),
       ),
     );
   }

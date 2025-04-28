@@ -1095,7 +1095,7 @@ class MyPlantsScreenState extends State<MyPlantsScreen>
               maxHeight: MediaQuery.of(context).size.height * 0.85,
             ),
             child: SingleChildScrollView(
-              child: Padding(
+               child: Padding(
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -1382,8 +1382,9 @@ class MyPlantsScreenState extends State<MyPlantsScreen>
                               }
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  Theme.of(context).colorScheme.primary,
+                               backgroundColor: Theme.of(context).brightness == Brightness.dark
+                               ? Colors.green[800]!
+                               : Colors.green[600]!,
                               foregroundColor:
                                   Theme.of(context).colorScheme.onPrimary,
                               minimumSize: const Size(double.infinity, 50),
@@ -2270,8 +2271,10 @@ class MyPlantsScreenState extends State<MyPlantsScreen>
                         width: double.infinity,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                Theme.of(context).colorScheme.primary,
+                            backgroundColor:Theme.of(context).brightness == Brightness.dark
+                              ? Colors.green[800]!
+                              : Colors.green[600]!,
+                                
                             foregroundColor:
                                 Theme.of(context).colorScheme.onPrimary,
                             minimumSize: const Size(double.infinity, 50),

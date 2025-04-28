@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
 
 class FeedbackPage extends StatefulWidget {
   const FeedbackPage({Key? key}) : super(key: key);
@@ -26,6 +28,26 @@ class _FeedbackPageState extends State<FeedbackPage> {
     'Other'
   ];
 
+  // Helper method to translate category while keeping database values consistent
+  String _translateCategory(String category, BuildContext context) {
+    switch (category) {
+      case 'General':
+        return AppLocalizations.of(context)!.generalCategory;
+      case 'Bug Report':
+        return AppLocalizations.of(context)!.bugReportCategory;
+      case 'Feature Request':
+        return AppLocalizations.of(context)!.featureRequestCategory;
+      case 'UI/UX':
+        return AppLocalizations.of(context)!.uiUxCategory;
+      case 'Performance':
+        return AppLocalizations.of(context)!.performanceCategory;
+      case 'Other':
+        return AppLocalizations.of(context)!.otherCategory;
+      default:
+        return category;
+    }
+  }
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -45,14 +67,14 @@ class _FeedbackPageState extends State<FeedbackPage> {
       // Get current user ID if user is logged in
       final userId = _supabase.auth.currentUser?.id;
       
-      // Submit feedback to Supabase
+      // Submit feedback to Supabase (original comment maintained)
       await _supabase.from('feedback').insert({
         'name': _nameController.text,
         'email': _emailController.text,
         'message': _feedbackController.text,
         'category': _selectedCategory,
-        'user_id': userId, // Will be null if not logged in
-        'status': 'new', // Default status for new feedback
+        'user_id': userId, // Will be null if not logged in (original comment)
+        'status': 'new', // Default status for new feedback (original comment)
       });
 
       if (mounted) {
@@ -60,7 +82,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
           _isSubmitting = false;
         });
         
-        // Reset form
+        // Reset form (original comment maintained)
         _nameController.clear();
         _emailController.clear();
         _feedbackController.clear();
@@ -68,10 +90,10 @@ class _FeedbackPageState extends State<FeedbackPage> {
           _selectedCategory = 'General';
         });
         
-        // Show success message
+        // Show success message (original comment maintained)
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Thank you for your feedback!'),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.feedbackSuccess),
             backgroundColor: const Color.fromRGBO(46, 125, 50, 1),
           ),
         );
@@ -82,10 +104,10 @@ class _FeedbackPageState extends State<FeedbackPage> {
           _isSubmitting = false;
         });
         
-        // Show error message
+        // Show error message (original comment maintained)
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error submitting feedback: ${e.toString()}'),
+            content: Text('${AppLocalizations.of(context)!.feedbackError}${e.toString()}'),
             backgroundColor: Colors.red,
           ),
         );
@@ -97,7 +119,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Send Feedback'),
+        title: Text(AppLocalizations.of(context)!.feedbackTitle),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
@@ -111,28 +133,28 @@ class _FeedbackPageState extends State<FeedbackPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Header with icon
-                const Center(
+                // Header with icon (original comment maintained)
+                Center(
                   child: Column(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.feedback_outlined,
                         size: 60,
-                        color: const Color.fromRGBO(46, 125, 50, 1),
+                        color: Color.fromRGBO(46, 125, 50, 1),
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       Text(
-                        'We value your feedback!',
-                        style: TextStyle(
+                        AppLocalizations.of(context)!.feedbackHeader,
+                        style: const TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
                       Text(
-                        'Help us improve by sharing your thoughts, suggestions, or reporting issues.',
+                        AppLocalizations.of(context)!.feedbackSubheader,
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.grey,
                         ),
                       ),
@@ -141,56 +163,56 @@ class _FeedbackPageState extends State<FeedbackPage> {
                 ),
                 const SizedBox(height: 24),
                 
-                // Name field
+                // Name field (original comment maintained)
                 TextFormField(
                   controller: _nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Name',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.person),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context)!.nameLabel,
+                    border: const OutlineInputBorder(),
+                    prefixIcon: const Icon(Icons.person),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your name';
+                      return AppLocalizations.of(context)!.nameValidation;
                     }
                     return null;
                   },
                 ),
                 const SizedBox(height: 16),
                 
-                // Email field
+                // Email field (original comment maintained)
                 TextFormField(
                   controller: _emailController,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.email),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context)!.emailLabel,
+                    border: const OutlineInputBorder(),
+                    prefixIcon: const Icon(Icons.email),
                   ),
                   keyboardType: TextInputType.emailAddress,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your email';
+                      return AppLocalizations.of(context)!.emailValidationEmpty;
                     }
                     if (!value.contains('@') || !value.contains('.')) {
-                      return 'Please enter a valid email';
+                      return AppLocalizations.of(context)!.emailValidationInvalid;
                     }
                     return null;
                   },
                 ),
                 const SizedBox(height: 16),
                 
-                // Category dropdown
+                // Category dropdown (original comment maintained)
                 DropdownButtonFormField<String>(
                   value: _selectedCategory,
-                  decoration: const InputDecoration(
-                    labelText: 'Category',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.category),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context)!.categoryLabel,
+                    border: const OutlineInputBorder(),
+                    prefixIcon: const Icon(Icons.category),
                   ),
                   items: _categories.map((category) {
                     return DropdownMenuItem(
                       value: category,
-                      child: Text(category),
+                      child: Text(_translateCategory(category, context)),
                     );
                   }).toList(),
                   onChanged: (value) {
@@ -203,29 +225,29 @@ class _FeedbackPageState extends State<FeedbackPage> {
                 ),
                 const SizedBox(height: 16),
                 
-                // Feedback message field
+                // Feedback message field (original comment maintained)
                 TextFormField(
                   controller: _feedbackController,
-                  decoration: const InputDecoration(
-                    labelText: 'Your Feedback',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context)!.feedbackLabel,
+                    border: const OutlineInputBorder(),
                     alignLabelWithHint: true,
-                    hintText: 'Please describe your feedback in detail...',
+                    hintText: AppLocalizations.of(context)!.feedbackHint,
                   ),
                   maxLines: 6,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your feedback';
+                      return AppLocalizations.of(context)!.feedbackValidationEmpty;
                     }
                     if (value.length < 10) {
-                      return 'Please provide more details';
+                      return AppLocalizations.of(context)!.feedbackValidationLength;
                     }
                     return null;
                   },
                 ),
                 const SizedBox(height: 24),
                 
-                // Submit button
+                // Submit button (original comment maintained)
                 ElevatedButton(
                   onPressed: _isSubmitting ? null : _submitFeedback,
                   style: ElevatedButton.styleFrom(
@@ -235,9 +257,9 @@ class _FeedbackPageState extends State<FeedbackPage> {
                   ),
                   child: _isSubmitting
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text(
-                          'SUBMIT FEEDBACK',
-                          style: TextStyle(
+                      : Text(
+                          AppLocalizations.of(context)!.submitButton,
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),

@@ -1,6 +1,10 @@
 // lib/pages/guides/guide_detail_page.dart
 import 'package:flutter/material.dart';
 import '../../models/guide.dart';
+import 'package:intl/intl.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
+
 
 class GuideDetailPage extends StatelessWidget {
   final Guide guide;
@@ -44,7 +48,7 @@ class GuideDetailPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    _formatDate(guide.createdAt),
+                    _formatLocalizedDate(context, guide.createdAt),
                     style: TextStyle(
                       color: Colors.grey.shade600,
                     ),
@@ -75,7 +79,9 @@ class GuideDetailPage extends StatelessWidget {
     );
   }
 
-  String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
+  // Keep original date formatting logic but make it localized
+  String _formatLocalizedDate(BuildContext context, DateTime date) {
+    final locale = AppLocalizations.of(context)?.localeName ?? 'en';
+    return DateFormat.yMMMd(locale).format(date);
   }
 }

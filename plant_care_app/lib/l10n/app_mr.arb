@@ -46,5 +46,75 @@
   "profileUpdated": "प्रोफाईल यशस्वीरित्या अद्यतनित करण्यात आली",
   "confirmLogout": "लॉगआउटची पुष्टी करा",
   "logoutConfirmation": "आपण खरोखर लॉगआउट करू इच्छिता?",
-  "cancel": "रद्द करा"
+  "cancel": "रद्द करा",
+
+
+  "changePassword": "पासवर्ड बदला",
+  "currentPassword": "सध्याचा पासवर्ड",
+  "enterCurrentPassword": "सध्याचा पासवर्ड टाका",
+  "verify": "पडताळणी करा",
+  "newPassword": "नवीन पासवर्ड",
+  "enterNewPassword": "नवीन पासवर्ड टाका",
+  "confirmPassword": "पासवर्डची पुष्टी करा",
+  "reenterNewPassword": "नवीन पासवर्ड पुन्हा टाका",
+  "saveNewPassword": "नवीन पासवर्ड जतन करा",
+  "incorrectPassword": "चुकीचा पासवर्ड",
+  "passwordsDontMatch": "पासवर्ड जुळत नाहीत",
+  "passwordUpdated": "पासवर्ड यशस्वीपणे अद्यतनित केला",
+  "passwordUpdateError": "पासवर्ड अद्यतनित करताना त्रुटी:",
+
+  "faqsTitle": "सामान्य विचारले जाणारे प्रश्न",
+  "@faqsTitle": {
+    "description": "FAQ पृष्ठाचे शीर्षक"
+  },
+  "noFaqsAvailable": "कोणतेही सामान्य प्रश्न उपलब्ध नाहीत",
+  "@noFaqsAvailable": {
+    "description": "FAQ पृष्ठावरील रिकाम्या स्थितीचा संदेश"
+  },
+
+  "contactSupportTitle": "सहाय्याशी संपर्क साधा",
+  "loadSupportInfoError": "सहाय्य माहिती लोड करण्यात अयशस्वी",
+  "noSupportInfoAvailable": "सध्या कोणतीही सहाय्य माहिती उपलब्ध नाही",
+  "needHelp": "मदत हवी आहे?",
+  "emailLabel": "ईमेल:",
+  "phoneLabel": "फोन:",
+
+  "feedbackTitle": "अभिप्राय पाठवा",
+  "feedbackHeader": "आमचा अभिप्राय महत्त्वाचा आहे!",
+  "feedbackSubheader": "आपले विचार, सूचना किंवा समस्या सामायिक करून आम्हाला सुधारण्यात मदत करा",
+  "nameLabel": "नाव",
+  "emailLabel": "ईमेल",
+  "categoryLabel": "श्रेणी",
+  "feedbackLabel": "तुमचा अभिप्राय",
+  "nameValidation": "कृपया आपले नाव प्रविष्ट करा",
+  "emailValidationEmpty": "कृपया आपला ईमेल प्रविष्ट करा",
+  "emailValidationInvalid": "कृपया वैध ईमेल प्रविष्ट करा",
+  "feedbackValidationEmpty": "कृपया आपला अभिप्राय प्रविष्ट करा",
+  "feedbackValidationLength": "कृपया अधिक तपशील प्रदान करा",
+  "generalCategory": "सामान्य",
+  "bugReportCategory": "त्रुटी अहवाल",
+  "featureRequestCategory": "वैशिष्ट्य विनंती",
+  "uiUxCategory": "यूआय/यूएक्स",
+  "performanceCategory": "कामगिरी",
+  "otherCategory": "इतर",
+  "feedbackHint": "कृपया तुमचा अभिप्राय तपशीलवार वर्णन करा...",
+  "submitButton": "अभिप्राय सबमिट करा",
+  "feedbackSuccess": "आपल्या अभिप्रायाबद्दल धन्यवाद!",
+  "feedbackError": "अभिप्राय सबमिट करताना त्रुटी: ",
+  "dateFormat": "d MMM, y",
+
+  "guidesTitle": "मार्गदर्शक",
+  "guidesArticles": "मार्गदर्शक आणि लेख",
+  "externalLinks": "बाह्य दुवे",
+  "noGuidesAvailable": "सध्या {category} मार्गदर्शक उपलब्ध नाहीत",
+  "guidesError": "मार्गदर्शक लोड करताना त्रुटी:",
+  "externalLinksError": "बाह्य दुवे लोड करताना त्रुटी:",
+  "noExternalResources": "कोणतेही बाह्य संसाधन उपलब्ध नाही",
+  "checkResource": "हे संसाधन पहा",
+
+  "plantCareGuides": "वनस्पतींची देखभाल मार्गदर्शक",
+  "guides": "मार्गदर्शक",
+  "frequentlyAskedQuestions": "वारंवार विचारले जाणारे प्रश्न",
+  "error": "चूक",
+  "noGuideCategoriesFound": "मार्गदर्शक श्रेण्या सापडल्या नाहीत"
 }

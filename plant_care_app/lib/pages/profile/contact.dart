@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ContactScreen extends StatefulWidget {
   const ContactScreen({Key? key}) : super(key: key);
@@ -39,7 +40,7 @@ class _ContactScreenState extends State<ContactScreen> {
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to load support information.')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.loadSupportInfoError)), // Updated
       );
     } finally {
       setState(() {
@@ -52,7 +53,7 @@ class _ContactScreenState extends State<ContactScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Contact Support'),
+        title: Text(AppLocalizations.of(context)!.contactSupportTitle), // Localized
         backgroundColor: Colors.green,
       ),
       body: isLoading
@@ -62,7 +63,7 @@ class _ContactScreenState extends State<ContactScreen> {
               child: email.isEmpty && phone.isEmpty && description.isEmpty
                   ? Center(
                       child: Text(
-                        "No support info available currently.",
+                        AppLocalizations.of(context)!.noSupportInfoAvailable, // Localized
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.black54,
@@ -73,7 +74,7 @@ class _ContactScreenState extends State<ContactScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Need Help?',
+                          AppLocalizations.of(context)!.needHelp, // Localized
                           style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
@@ -90,7 +91,7 @@ class _ContactScreenState extends State<ContactScreen> {
                         ),
                         const SizedBox(height: 20),
                         Text(
-                          'Email:',
+                          AppLocalizations.of(context)!.emailLabel, // Localized
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -104,7 +105,7 @@ class _ContactScreenState extends State<ContactScreen> {
                         ),
                         const SizedBox(height: 20),
                         Text(
-                          'Phone:',
+                          AppLocalizations.of(context)!.phoneLabel, // Localized
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,

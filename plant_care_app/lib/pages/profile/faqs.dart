@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
 
 class FAQsPage extends StatefulWidget {
   const FAQsPage({Key? key}) : super(key: key);
@@ -43,7 +45,7 @@ class _FAQsPageState extends State<FAQsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('FAQs'),
+        title: Text(AppLocalizations.of(context)!.faqsTitle), // Localized title
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
@@ -52,7 +54,7 @@ class _FAQsPageState extends State<FAQsPage> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _faqs.isEmpty
-              ? const Center(child: Text('No FAQs available'))
+              ? Center(child: Text(AppLocalizations.of(context)!.noFaqsAvailable)) // Localized empty state
               : ListView.builder(
                   itemCount: _faqs.length,
                   padding: const EdgeInsets.all(16),

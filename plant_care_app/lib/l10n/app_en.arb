@@ -113,7 +113,105 @@
 
   "confirmLogout": "Confirm Logout",
   "logoutConfirmation": "Are you sure you want to log out?",
-  "cancel": "Cancel"
+  "cancel": "Cancel",
+
+  "changePassword": "Change Password",
+  "currentPassword": "Current Password",
+  "enterCurrentPassword": "Enter current password",
+  "verify": "Verify",
+  "newPassword": "New Password",
+  "enterNewPassword": "Enter new password",
+  "confirmPassword": "Confirm Password",
+  "reenterNewPassword": "Re-enter new password",
+  "saveNewPassword": "Save New Password",
+  "incorrectPassword": "Incorrect password",
+  "passwordsDontMatch": "Passwords do not match",
+  "passwordUpdated": "Password updated successfully",
+  "passwordUpdateError": "Error updating password:",
+
+  "faqsTitle": "FAQs",
+  "@faqsTitle": {
+    "description": "Title for FAQs page"
+  },
+  "noFaqsAvailable": "No FAQs available",
+  "@noFaqsAvailable": {
+    "description": "Empty state message for FAQs page"
+  },
+
+  "contactSupportTitle": "Contact Support",
+  "@contactSupportTitle": {"description": "Contact screen title"},
+  
+  "loadSupportInfoError": "Failed to load support information.",
+  "@loadSupportInfoError": {"description": "Support info loading error"},
+  
+  "noSupportInfoAvailable": "No support info available currently.",
+  "@noSupportInfoAvailable": {"description": "Empty support info message"},
+  
+  "needHelp": "Need Help?",
+  "@needHelp": {"description": "Help section heading"},
+  
+  "emailLabel": "Email:",
+  "@emailLabel": {"description": "Email label text"},
+  
+  "phoneLabel": "Phone:",
+  "@phoneLabel": {"description": "Phone label text"},
+
+  "feedbackTitle": "Send Feedback",
+  "@feedbackTitle": {"description": "Feedback page title"},
+  
+  "feedbackHeader": "We value your feedback!",
+  "@feedbackHeader": {"description": "Main header text"},
+  
+  "feedbackSubheader": "Help us improve by sharing your thoughts, suggestions, or reporting issues.",
+  "@feedbackSubheader": {"description": "Subheader text"},
+  
+  "nameLabel": "Name",
+  "emailLabel": "Email",
+  "categoryLabel": "Category",
+  "feedbackLabel": "Your Feedback",
+  
+  "nameValidation": "Please enter your name",
+  "emailValidationEmpty": "Please enter your email",
+  "emailValidationInvalid": "Please enter a valid email",
+  "feedbackValidationEmpty": "Please enter your feedback",
+  "feedbackValidationLength": "Please provide more details",
+  
+  "generalCategory": "General",
+  "bugReportCategory": "Bug Report",
+  "featureRequestCategory": "Feature Request",
+  "uiUxCategory": "UI/UX",
+  "performanceCategory": "Performance",
+  "otherCategory": "Other",
+  
+  "feedbackHint": "Please describe your feedback in detail...",
+  "submitButton": "SUBMIT FEEDBACK",
+  "feedbackSuccess": "Thank you for your feedback!",
+  "feedbackError": "Error submitting feedback: ",
+
+  "dateFormat": "MMM d, y",
+
+  "guidesTitle": "Guides",
+  "guidesArticles": "Guides & Articles",
+  "externalLinks": "External Links",
+  "noGuidesAvailable": "No {category} guides available yet",
+  "@noGuidesAvailable": {
+    "description": "Empty state for guides list",
+    "placeholders": {
+      "category": {}
+    }
+  },
+  "guidesError": "Error loading guides:",
+  "externalLinksError": "Error loading external links:",
+  "noExternalResources": "No external resources available",
+  "checkResource": "Check out this resource",
+
+  "plantCareGuides": "Plant Care Guides",
+  "guides": "guides",
+  "frequentlyAskedQuestions": "Frequently Asked Questions",
+  "error": "Error",
+  "noGuideCategoriesFound": "No guide categories found"
+  
+
 
 
 
