@@ -33,8 +33,9 @@ class Plant {
   final String userId;
   DateTime?
   lastWateredDate; // Added field to track when the plant was last watered
-  final String? timeToWater; // Add this field to store time_to_water
   final String? plantId;
+  final String? adoptionId; // Added to store the adoption record ID
+  String? alarmTiming; // Added to store the alarm timing from adoption_record
 
   Plant({
     required this.speciesName,
@@ -47,8 +48,9 @@ class Plant {
     this.currentAvailability,
     required this.userId,
     this.lastWateredDate,
-    this.timeToWater,
     this.plantId,
+    this.adoptionId,
+    this.alarmTiming,
   });
 
   factory Plant.fromMap(Map<String, dynamic> map) {
@@ -62,7 +64,6 @@ class Plant {
       imageUrl: map['image_url'],
       currentAvailability: map['current_availability'],
       userId: map['user_id'] ?? '',
-      timeToWater: map['time_to_water'],
       plantId: map['plant_id'],
     );
   }
@@ -76,11 +77,13 @@ Future<List<Plant>> fetchPlants() async {
     throw Exception('User not authenticated');
   }
 
+  // Get adoption records with alarm_timing field
   final response = await supabase
       .from('adoption_record')
       .select('''
       adoption_id,
       plant_id,
+      alarm_timing,
       plant_catalog (
         species_name,
         scientific_name,
@@ -89,15 +92,22 @@ Future<List<Plant>> fetchPlants() async {
         days_to_water,
         sunlight_requirement,
         image_url,
-        current_availability,
-        time_to_water
+        current_availability
       )
     ''')
       .eq('user_id', user.id);
 
+  print('Fetched ${response.length} adoption records');
+
   List<Plant> plants =
       (response as List).map((data) {
         final plantData = data['plant_catalog'] as Map<String, dynamic>;
+
+        // Debug print to see what data is coming from the database
+        print(
+          'Plant: ${plantData['species_name']}, adoption_id: ${data['adoption_id']}, alarm_timing: ${data['alarm_timing']}',
+        );
+
         return Plant(
           speciesName: plantData['species_name'] ?? '',
           scientificName: plantData['scientific_name'] ?? '',
@@ -110,8 +120,9 @@ Future<List<Plant>> fetchPlants() async {
           imageUrl: plantData['image_url'],
           currentAvailability: plantData['current_availability'],
           userId: user.id,
-          timeToWater: plantData['time_to_water'], // Add this line
           plantId: data['plant_id'],
+          adoptionId: data['adoption_id'],
+          alarmTiming: data['alarm_timing'],
         );
       }).toList();
 
@@ -229,15 +240,127 @@ class MyPlantsScreen extends StatefulWidget {
   const MyPlantsScreen({super.key});
 
   @override
-  State<MyPlantsScreen> createState() => _MyPlantsScreenState();
+  MyPlantsScreenState createState() => MyPlantsScreenState();
 }
 
-class _MyPlantsScreenState extends State<MyPlantsScreen> {
+class MyPlantsScreenState extends State<MyPlantsScreen>
+    with WidgetsBindingObserver, AutomaticKeepAliveClientMixin {
   // Map to store updated reminder times for plants
   final Map<String, String> _updatedReminderTimes = {};
 
+  // Flag to control visibility of the plant care reminder section
+  bool _showPlantCareReminders = false;
+  bool _isLoadingPreferences = true;
+
+  // Add a refresh key to force UI updates when reminder times change
+  final ValueNotifier<int> _refreshKey = ValueNotifier<int>(0);
+
+  @override
+  bool get wantKeepAlive => true; // Keep this widget alive when switching tabs
+
+  @override
+  void initState() {
+    super.initState();
+    // Add observer to detect when the app comes back to foreground
+    WidgetsBinding.instance.addObserver(this);
+    _fetchUserPreferences();
+  }
+
+  @override
+  void dispose() {
+    // Remove the observer when disposing
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // When app resumes from background, refresh preferences
+    if (state == AppLifecycleState.resumed) {
+      _fetchUserPreferences();
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Refresh preferences when returning to this screen
+    _fetchUserPreferences();
+  }
+
+  // Public method to refresh the state when tab is selected
+  void refreshState() {
+    if (mounted) {
+      _fetchUserPreferences();
+      // Increment refresh key to trigger UI update of plant care reminders
+      _refreshKey.value++;
+      print('MyPlantsScreen state refreshed via public method');
+    }
+  }
+
+  // Fetch user preferences from Supabase
+  Future<void> _fetchUserPreferences() async {
+    setState(() {
+      _isLoadingPreferences = true;
+    });
+
+    try {
+      final supabase = Supabase.instance.client;
+      final user = supabase.auth.currentUser;
+
+      print('Fetching user preferences, current user: ${user?.id}');
+
+      if (user == null) {
+        print('User not authenticated');
+        setState(() {
+          _showPlantCareReminders = false;
+          _isLoadingPreferences = false;
+        });
+        return;
+      }
+
+      // Fetch the user's plant_care_remainder preference from user_details table
+      print('Querying user_details table for plant_care_remainder');
+      final response = await supabase
+          .from('user_details')
+          .select('plant_care_remainder')
+          .eq('id', user.id)
+          .limit(1);
+
+      print('Response from user_details table: $response');
+
+      if (response != null && response.isNotEmpty) {
+        final bool showReminders =
+            response[0]['plant_care_remainder'] ?? true; // Default to true
+        print('plant_care_remainder value: $showReminders');
+        setState(() {
+          _showPlantCareReminders = showReminders;
+        });
+        print(
+          '_showPlantCareReminders state updated to: $_showPlantCareReminders',
+        );
+      } else {
+        print('Empty response or no user record found, defaulting to true');
+        setState(() {
+          _showPlantCareReminders = true; // Default to true if no record exists
+        });
+      }
+    } catch (e) {
+      print('Error fetching user preferences: $e');
+      // Default to true if there was an error
+      setState(() {
+        _showPlantCareReminders = true;
+      });
+    } finally {
+      setState(() {
+        _isLoadingPreferences = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final ScrollController scrollController = ScrollController();
 
     return SingleChildScrollView(
@@ -247,7 +370,7 @@ class _MyPlantsScreenState extends State<MyPlantsScreen> {
           // First Section - Horizontal Plant Category Circles
           Container(
             height: 150,
-            padding: const EdgeInsets.symmetric(vertical: 10),
+            padding: const EdgeInsets.symmetric(vertical: 14),
             child: FutureBuilder<List<Map<String, dynamic>>>(
               future: fetchAvailablePlants(),
               builder: (context, snapshot) {
@@ -304,102 +427,138 @@ class _MyPlantsScreenState extends State<MyPlantsScreen> {
               },
             ),
           ),
-          // Third Section - Today's Plant Care
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Today's Plant Care",
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  height: 125,
-                  child: FutureBuilder<List<Plant>>(
-                    future: fetchPlants(),
-                    builder: (context, snapshot) {
-                      // Display all plants, regardless of watering status
-                      return ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: snapshot.data!.length,
-                        separatorBuilder:
-                            (context, index) => const SizedBox(width: 12),
-                        itemBuilder: (context, index) {
-                          final plant = snapshot.data![index];
-                          // Format time_to_water for display
-                          String displayTime = "Anytime";
-                          if (plant.timeToWater != null &&
-                              plant.timeToWater!.isNotEmpty) {
-                            // Parse time from time_to_water (expected format "10:00:00")
-                            final timeParts = plant.timeToWater!.split(':');
-                            if (timeParts.length >= 2) {
-                              final hour = int.tryParse(timeParts[0]) ?? 0;
-                              final minute = int.tryParse(timeParts[1]) ?? 0;
-                              final period = hour < 12 ? 'AM' : 'PM';
-                              final displayHour =
-                                  hour % 12 == 0 ? 12 : hour % 12;
-                              displayTime =
-                                  '$displayHour:${minute.toString().padLeft(2, '0')} $period';
-                            }
-                          }
 
-                          // Check if plant needs watering
-                          final today = DateTime.now();
-                          bool needsWatering = true;
-                          if (plant.lastWateredDate != null) {
-                            final daysSinceWatered =
-                                today.difference(plant.lastWateredDate!).inDays;
-                            final waterFrequency =
-                                plant.waterFrequencyDays ?? 15;
-                            needsWatering = daysSinceWatered >= waterFrequency;
-                          }
-
-                          return GestureDetector(
-                            onTap: () {
-                              _showReminderTimeDialog(context, plant);
-                            },
-                            child: _buildCareReminderCard(
-                              context: context,
-                              icon: Icons.water_drop,
-                              iconColor:
-                                  Theme.of(context).brightness ==
-                                          Brightness.dark
-                                      ? Colors
-                                          .green[400]! // Light green for dark mode
-                                      : Colors
-                                          .green[600]!, // Dark green for light mode
-                              title:
-                                  needsWatering
-                                      ? 'Water ${plant.speciesName}'
-                                      : '${plant.speciesName} watered',
-                              time:
-                                  _updatedReminderTimes.containsKey(
-                                        plant.speciesName,
-                                      )
-                                      ? _formatTimeString(
-                                        _updatedReminderTimes[plant
-                                            .speciesName]!,
-                                      )
-                                      : displayTime,
-                              color:
-                                  needsWatering
-                                      ? Theme.of(context).colorScheme.primary
-                                      : Colors.green,
-                            ),
-                          );
-                        },
-                      );
-                    },
+          // Third Section - Today's Plant Care (conditionally shown)
+          if (_showPlantCareReminders) // Only show this section if plant_care_remainder is true
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Today's Plant Care",
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    height: 125,
+                    child: ValueListenableBuilder(
+                      valueListenable: _refreshKey,
+                      builder: (context, _, __) {
+                        return FutureBuilder<List<Plant>>(
+                          future: fetchPlants(),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Center(
+                                child: CircularProgressIndicator(),
+                              );
+                            } else if (snapshot.hasError) {
+                              return Center(
+                                child: Text('Error: ${snapshot.error}'),
+                              );
+                            } else if (!snapshot.hasData ||
+                                snapshot.data!.isEmpty) {
+                              return Center(
+                                child: Text(
+                                  'No plants to care for today',
+                                  style: TextStyle(
+                                    color:
+                                        Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              );
+                            }
+
+                            // Display all plants, regardless of watering status
+                            return ListView.separated(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: snapshot.data!.length,
+                              separatorBuilder:
+                                  (context, index) => const SizedBox(width: 12),
+                              itemBuilder: (context, index) {
+                                final plant = snapshot.data![index];
+
+                                // Check if plant needs watering
+                                final today = DateTime.now();
+                                bool needsWatering = true;
+                                if (plant.lastWateredDate != null) {
+                                  final daysSinceWatered =
+                                      today
+                                          .difference(plant.lastWateredDate!)
+                                          .inDays;
+                                  final waterFrequency =
+                                      plant.waterFrequencyDays ?? 15;
+                                  needsWatering =
+                                      daysSinceWatered >= waterFrequency;
+                                }
+
+                                // Get reminder time from database or local updates
+                                String reminderTime = "Not Set";
+                                if (_updatedReminderTimes.containsKey(
+                                  plant.speciesName,
+                                )) {
+                                  // If there's a pending update, use that
+                                  print(
+                                    'Using updated reminder time for ${plant.speciesName}: ${_updatedReminderTimes[plant.speciesName]}',
+                                  );
+                                  reminderTime = _formatTimeString(
+                                    _updatedReminderTimes[plant.speciesName]!,
+                                  );
+                                } else if (plant.alarmTiming != null &&
+                                    plant.alarmTiming!.isNotEmpty) {
+                                  // Otherwise use the value from the database
+                                  print(
+                                    'Using database alarm_timing for ${plant.speciesName}: ${plant.alarmTiming}',
+                                  );
+                                  reminderTime = _formatTimeString(
+                                    plant.alarmTiming!,
+                                  );
+                                } else {
+                                  print(
+                                    'No reminder time found for ${plant.speciesName}, using "Not Set"',
+                                  );
+                                }
+
+                                // Return the card
+                                return _buildCareReminderCard(
+                                  context: context,
+                                  icon: Icons.water_drop,
+                                  iconColor:
+                                      Theme.of(context).brightness ==
+                                              Brightness.dark
+                                          ? Colors
+                                              .green[400]! // Light green for dark mode
+                                          : Colors
+                                              .green[600]!, // Dark green for light mode
+                                  title:
+                                      needsWatering
+                                          ? 'Water ${plant.speciesName}'
+                                          : '${plant.speciesName} watered',
+                                  time: reminderTime,
+                                  color:
+                                      needsWatering
+                                          ? Theme.of(
+                                            context,
+                                          ).colorScheme.primary
+                                          : Colors.green,
+                                  plant: plant, // Pass plant parameter
+                                );
+                              },
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
+
           // Fourth Section - All Plants
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -806,7 +965,7 @@ class _MyPlantsScreenState extends State<MyPlantsScreen> {
                   const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: () {
-                      _showPhotoSourceDialog(context);
+                      // BACKEND: Handle photo upload
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor:
@@ -1346,31 +1505,61 @@ class _MyPlantsScreenState extends State<MyPlantsScreen> {
     required String title,
     required String time,
     required Color color,
+    required Plant plant, // Added plant parameter
   }) {
     return Container(
       width: 200,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 0, 0),
       decoration: BoxDecoration(
         border: Border.all(color: color.withOpacity(0.3)),
         borderRadius: BorderRadius.circular(12),
         color: Theme.of(context).colorScheme.surface,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
         children: [
-          Icon(icon, color: iconColor),
-          const SizedBox(height: 12),
-          Text(
-            title,
-            style: Theme.of(
-              context,
-            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon, color: iconColor),
+              const SizedBox(height: 12),
+              Text(
+                title,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                time,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 4),
-          Text(
-            time,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
+
+          // Edit icon in the top right corner
+          Positioned(
+            bottom: 0,
+            right: 0,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.transparent,
+                shape: BoxShape.circle,
+              ),
+              child: IconButton(
+                icon: Icon(
+                  Icons.edit,
+                  size: 18,
+                  color: Colors.green,
+                ),
+                constraints: const BoxConstraints(minWidth: 50, minHeight: 50),
+                padding: const EdgeInsets.all(2),
+                onPressed: () {
+                  _showReminderTimeDialog(context, plant);
+                },
+                tooltip: 'Edit reminder',
+              ),
             ),
           ),
         ],
@@ -1612,13 +1801,38 @@ class _MyPlantsScreenState extends State<MyPlantsScreen> {
   }
 
   void _showReminderTimeDialog(BuildContext context, Plant plant) {
-    // Get reminder time from NotificationService
-    String savedReminderTime = NotificationService.instance.getReminderTime(
-      plant.speciesName,
-    );
+    // Check if there's a saved reminder time in the NotificationService
+    String savedReminderTime =
+        _updatedReminderTimes[plant.speciesName] ??
+        NotificationService.instance.getReminderTime(plant.speciesName);
 
-    // Initialize with the saved reminder time or default to 7:00 AM
+    bool isReminderSet =
+        savedReminderTime != NotificationService.defaultReminderTime &&
+        _updatedReminderTimes.containsKey(plant.speciesName);
+
+    // Initialize with the saved reminder time or default to current time
     TimeOfDay initialTime;
+
+    if (isReminderSet) {
+      // If a reminder is already set, use that time
+      final timeParts = savedReminderTime.split(' ');
+      if (timeParts.length >= 2) {
+        final timeComponents = timeParts[1].split(':');
+        if (timeComponents.length >= 2) {
+          initialTime = TimeOfDay(
+            hour: int.parse(timeComponents[0]),
+            minute: int.parse(timeComponents[1]),
+          );
+        } else {
+          initialTime = TimeOfDay.now();
+        }
+      } else {
+        initialTime = TimeOfDay.now();
+      }
+    } else {
+      // Default to current time if no reminder is set
+      initialTime = TimeOfDay.now();
+    }
 
     Future<void> _scheduleNotification() async {
       final DateTime scheduledDateTime = DateTime(
@@ -1629,7 +1843,7 @@ class _MyPlantsScreenState extends State<MyPlantsScreen> {
         selectedTime.minute,
       );
 
-      // check if selected time is in the past
+      // Check if selected time is in the past
       if (scheduledDateTime.isBefore(DateTime.now())) {
         // Show a warning message
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1643,61 +1857,97 @@ class _MyPlantsScreenState extends State<MyPlantsScreen> {
         return;
       }
 
-      await NotificationService.instance.scheduleNotification(
-        plantName: plant.speciesName,
-        scheduledDateTime: scheduledDateTime,
-        waterFrequencyDays: plant.waterFrequencyDays ?? 15,
-      );
+      // Format time string for saving
+      final formattedDate =
+          "${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}";
+      final formattedTime =
+          "${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}";
+      final reminderTimeString = "$formattedDate $formattedTime";
 
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Reminder set for ${plant.speciesName} at $scheduledDateTime',
-            ),
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 2),
-          ),
+      try {
+        // Save the reminder time to both the local NotificationService and the database
+        await NotificationService.instance.saveReminderTime(
+          plant.speciesName,
+          reminderTimeString,
         );
+
+        // Update the database if we have the adoption_id
+        if (plant.adoptionId != null) {
+          final supabase = Supabase.instance.client;
+          final String adoptionId =
+              plant.adoptionId!; // Create local non-nullable variable
+
+          // Create a JSON-compatible map with non-nullable values
+          final Map<String, dynamic> updateData = {};
+
+          // Only add non-null values to the map
+          if (reminderTimeString.isNotEmpty) {
+            updateData['alarm_timing'] = reminderTimeString;
+          }
+
+          try {
+            await supabase
+                .from('adoption_record')
+                .update(updateData)
+                .eq('adoption_id', adoptionId); // Use local variable instead
+
+            print(
+              'Updated alarm_timing in database for ${plant.speciesName}: $reminderTimeString',
+            );
+          } catch (e) {
+            print('Error updating database: $e');
+            throw e; // Re-throw to be caught by the outer try-catch
+          }
+        } else {
+          print(
+            'Cannot update database: missing adoption_id for ${plant.speciesName}',
+          );
+        }
+
+        // Update the local map for immediate UI update
+        setState(() {
+          _updatedReminderTimes[plant.speciesName] = reminderTimeString;
+          // Increment refresh key to trigger UI update
+          _refreshKey.value++;
+        });
+
+        // Schedule the actual notification
+        await NotificationService.instance.scheduleNotification(
+          plantName: plant.speciesName,
+          scheduledDateTime: scheduledDateTime,
+          waterFrequencyDays: plant.waterFrequencyDays ?? 15,
+        );
+
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Reminder set for ${plant.speciesName}'),
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      } catch (e) {
+        print('Error saving reminder time: $e');
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error setting reminder: ${e.toString()}'),
+              backgroundColor: Theme.of(context).colorScheme.error,
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
       }
     }
 
-    void _updateDateTime(DateTime date, TimeOfDay time) {
+    void _updateDateTime(DateTime date, TimeOfDay time, Plant plant) {
       setState(() {
         selectedDate = date;
         selectedTime = time;
       });
-    }
-
-    if (savedReminderTime != NotificationService.defaultReminderTime) {
-      // Parse from the saved reminder time (format: "HH:MM")
-      final timeParts = savedReminderTime.split(':');
-      initialTime = TimeOfDay(
-        hour: int.parse(timeParts[0]),
-        minute: int.parse(timeParts[1]),
-      );
-    } else if (_updatedReminderTimes.containsKey(plant.speciesName)) {
-      // If we already have a temporarily updated time for this plant, use it
-      final timeParts = _updatedReminderTimes[plant.speciesName]!.split(':');
-      initialTime = TimeOfDay(
-        hour: int.parse(timeParts[0]),
-        minute: int.parse(timeParts[1]),
-      );
-    } else if (plant.timeToWater != null && plant.timeToWater!.isNotEmpty) {
-      // Use the plant's original timeToWater if available
-      final timeParts = plant.timeToWater!.split(':');
-      if (timeParts.length >= 2) {
-        final hour = int.tryParse(timeParts[0]) ?? 7;
-        final minute = int.tryParse(timeParts[1]) ?? 0;
-        initialTime = TimeOfDay(hour: hour, minute: minute);
-      } else {
-        // Default to 7 AM
-        initialTime = const TimeOfDay(hour: 7, minute: 0);
-      }
-    } else {
-      // Default to 7 AM
-      initialTime = const TimeOfDay(hour: 7, minute: 0);
     }
 
     showDialog(
@@ -1726,7 +1976,7 @@ class _MyPlantsScreenState extends State<MyPlantsScreen> {
                     selectedDate: selectedDate,
                     selectedTime: initialTime,
                     onDateTimeChanged: (selectedDate, selectedTime) {
-                      _updateDateTime(selectedDate, selectedTime);
+                      _updateDateTime(selectedDate, selectedTime, plant);
                     },
                   ),
                   const SizedBox(height: 20),
@@ -1751,7 +2001,7 @@ class _MyPlantsScreenState extends State<MyPlantsScreen> {
                   ),
                   onPressed: () async {
                     _scheduleNotification();
-                    // First, close the dialog immediately before async operations
+                    // Close the dialog immediately before async operations
                     Navigator.of(context).pop();
                   },
                   child: const Text('Set Reminder'),
@@ -1765,19 +2015,42 @@ class _MyPlantsScreenState extends State<MyPlantsScreen> {
   }
 
   String _formatTimeString(String timeString) {
-    final timeParts = timeString.split(' ');
-    if (timeParts.length == 2) {
-      final datePart = timeParts[0];
-      final timePart = timeParts[1];
-      final timeComponents = timePart.split(':');
+    if (timeString == "Not Set") {
+      return timeString;
+    }
+
+    print('Formatting time string: $timeString');
+
+    // Handle different possible formats
+    // Case 1: If it has a space (like "2025-04-28 16:30")
+    if (timeString.contains(' ')) {
+      final timeParts = timeString.split(' ');
+      if (timeParts.length >= 2) {
+        final timePart = timeParts[1];
+        final timeComponents = timePart.split(':');
+        if (timeComponents.length >= 2) {
+          final hour = int.tryParse(timeComponents[0]) ?? 0;
+          final minute = int.tryParse(timeComponents[1]) ?? 0;
+          final period = hour < 12 ? 'AM' : 'PM';
+          final displayHour = hour % 12 == 0 ? 12 : hour % 12;
+          return '${displayHour}:${minute.toString().padLeft(2, '0')} $period';
+        }
+      }
+    }
+    // Case 2: If it's just a time (like "16:30")
+    else if (timeString.contains(':')) {
+      final timeComponents = timeString.split(':');
       if (timeComponents.length >= 2) {
         final hour = int.tryParse(timeComponents[0]) ?? 0;
         final minute = int.tryParse(timeComponents[1]) ?? 0;
         final period = hour < 12 ? 'AM' : 'PM';
         final displayHour = hour % 12 == 0 ? 12 : hour % 12;
-        return '$datePart $displayHour:${minute.toString().padLeft(2, '0')} $period';
+        return '${displayHour}:${minute.toString().padLeft(2, '0')} $period';
       }
     }
+
+    // If we couldn't parse it or it's in an unexpected format, return as is
+    print('Could not parse time string: $timeString');
     return timeString;
   }
 
